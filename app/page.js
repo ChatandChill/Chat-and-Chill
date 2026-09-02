@@ -1,23 +1,17 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
-);
+import { useState, useEffect } from 'react';
 
 export default function Page() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('Guest');
 
   useEffect(() => {
     const name = prompt('Enter your name:') || 'Anonymous';
     setUsername(name);
   }, []);
 
-  const sendMessage = async (e) => {
+  const sendMessage = (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
     setMessages([...messages, { text: newMessage, user: username, id: Date.now() }]);
@@ -36,15 +30,8 @@ export default function Page() {
         {messages.length === 0 && <p style={{ color: '#888' }}>No messages yet. Start chilling!</p>}
       </div>
       <form onSubmit={sendMessage} style={{ display: 'flex', gap: '10px' }}>
-        <input
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type a message..."
-          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
-        />
-        <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', background: 'black', color: 'white', border: 'none' }}>
-          Send
-        </button>
+        <input value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }} />
+        <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', background: 'black', color: 'white', border: 'none' }}>Send</button>
       </form>
     </div>
   );
