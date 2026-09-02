@@ -1,18 +1,14 @@
-App/layout.js
-
-
 export const metadata = {
-  title: 'Chat & Chill',
-  description: 'Drop Gifts. Go Live. Earn Daily.'
+  title: "Chat and Chill",
+  description: "Chat and Chill app",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, background: '#0A0A0F' }}>
+      <body style={{ margin: 0, padding: 0 }}>
         {children}
       </body>
     </html>
   );
 }
-
