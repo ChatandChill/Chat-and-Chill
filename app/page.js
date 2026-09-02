@@ -5,10 +5,10 @@ export default function Page() {
   const [bal, setBal] = useState(47250);
   const [msg, setMsg] = useState("");
 
-  const gift = (name:string, price:number) => {
+  const gift = (name, price) => {
     const keep = Math.round(price*0.7);
     setBal(b=>b+keep);
-    setMsg(`Gift dropped! ${name} - You got N${keep}`);
+    setMsg(Gift dropped! ${name} - You got N${keep});
     setTimeout(()=>setMsg(""), 2500);
   };
 
@@ -25,7 +25,7 @@ export default function Page() {
 
         <div style={{background:'white', borderRadius:24, padding:18, boxShadow:'0 8px 24px rgba(0,0,0,0.08)', marginBottom:20}}>
           <p style={{fontWeight:'bold', fontSize:14}}>⚡ Go live in 2 seconds, receive instant gifts</p>
-          <button onClick={()=>setMsg("You are LIVE! Invite fans 🔥")} style={{marginTop:14, width:'100%', height:52, borderRadius:16, background:'#FF5A1F', color:'white', fontWeight:900, border:'none', fontSize:15}}>▶ Start Live Now</button>
+          <button onClick={()=>setMsg("You are LIVE! Invite fans 🔥")} style={{marginTop:14, width:'100%', height:52, borderRadius:16, background:'#FF5A1F', color:'white', fontWeight:900, border:'none', fontSize:15}}>▶️ Start Live Now</button>
         </div>
 
         <h3 style={{fontWeight:900, marginBottom:12}}>Rewards • 70% to Creator • Balance: N{bal.toLocaleString()}</h3>
