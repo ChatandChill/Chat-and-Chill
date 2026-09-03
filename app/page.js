@@ -1,134 +1,205 @@
 "use client"
-import { useState, useEffect } from 'react';
+import { useState } from 'react'
+
+const LANGS = {
+  pidgin: { flag:'🇳🇬', label:'PIDGIN', name:'One Family' },
+  hausa: { flag:'🟢', label:'HAUSA', name:'Iyali Daya' },
+  yoruba: { flag:'⚫', label:'YORUBA', name:'Idile Kan' },
+  igbo: { flag:'🔴', label:'IGBO', name:'Otu Ezinulo' },
+  swahili: { flag:'🌍', label:'SWAHILI', name:'Familia Moja' },
+  english: { flag:'🇬🇧', label:'ENGLISH', name:'One Family' },
+}
+
+const TRANSLATIONS:any = {
+  welcomeTitle: {
+    pidgin: "Welcome to Chat & Chill",
+    hausa: "Barka da zuwa Chat & Chill",
+    yoruba: "Kaabo si Chat & Chill",
+    igbo: "Nnọọ na Chat & Chill",
+    swahili: "Karibu Chat & Chill",
+    english: "Welcome to Chat & Chill"
+  },
+  welcomeSub: {
+    pidgin: "Talk Cool, Stay Chill + Earn",
+    hausa: "Magana Mai Sanyi + Samu Kudi",
+    yoruba: "Sọrọ Tutu + Gba Owo",
+    igbo: "Kparịta ụka dị jụụ + Nweta ego",
+    swahili: "Ongea Poa + Pata Pesa",
+    english: "Talk Cool, Stay Chill + Earn"
+  },
+  electrified: {
+    pidgin: "ELECTRIFIED • ENTERTAINMENT • STREAM",
+    hausa: "NISHADI MAI WUTA • NISHADI • YAWO",
+    yoruba: "ERE IDARAYA ONINA • SINSIN",
+    igbo: "NTỤRNDỤ NA-ENWU ỌKỤ • MGBASAOZI",
+    swahili: "BURUDANI YA UMEME • MTIRIRIKO",
+    english: "ELECTRIFIED • ENTERTAINMENT • STREAM"
+  },
+  africaDiaspora: {
+    pidgin: "Africa + Diaspora Connected 🌍 • Love + Vibe + Earn",
+    hausa: "Afirka + Diaspora Haɗe 🌍 • Ƙauna + Nishaɗi + Kudi",
+    yoruba: "Afirika + Diaspora Sopọ 🌍 • Ifẹ + Igbadun + Owo",
+    igbo: "Africa + Diaspora Jikọtara 🌍 • Ịhụnanya + Obi ụtọ + Ego",
+    swahili: "Afrika + Diaspora Imeunganishwa 🌍 • Upendo + Raha + Pesa",
+    english: "Africa + Diaspora Connected 🌍 • Love + Vibe + Earn"
+  },
+  forYou: { pidgin:"For You 👑", hausa:"Gare Ka 👑", yoruba:"Fun Ẹ 👑", igbo:"Maka Gị 👑", swahili:"Kwa Ajili Yako 👑", english:"For You 👑"},
+  live: { pidgin:"Live", hausa:"Kai Tsaye", yoruba:"Laye", igbo:"Ndụ", swahili:"Moja kwa Moja", english:"Live"},
+  gifts: { pidgin:"Gifts 70% to you", hausa:"Kyaututtuka 70% gare ka", yoruba:"Ẹbun 70% fun ẹ", igbo:"Onyinye 70% nye gị", swahili:"Zawadi 70% kwako", english:"Gifts 70% to you"},
+  goLive: { pidgin:"Go Live Now", hausa:"Fara Live Yanzu", yoruba:"Lọ Laye Bayi", igbo:"Bido Ndụ Ugbu a", swahili:"Anza Live Sasa", english:"Go Live Now"},
+  sendGift: { pidgin:"Send Gift", hausa:"Aika Kyauta", yoruba:"Ran Ẹbun", igbo:"Zipu Onyinye", swahili:"Tuma Zawadi", english:"Send Gift"},
+  enterApp: { pidgin:"Enter Chat & Chill 🚀", hausa:"Shiga Chat & Chill 🚀", yoruba:"Wọle si Chat & Chill 🚀", igbo:"Banye na Chat & Chill 🚀", swahili:"Ingia Chat & Chill 🚀", english:"Enter Chat & Chill 🚀"},
+  oneFamily: { pidgin:"We Be One Family", hausa:"Mu Iyali Daya Ne", yoruba:"A Je Idile Kan", igbo:"Anyị Bụ Otu Ezinụlọ", swahili:"Sisi ni Familia Moja", english:"We Are One Family"},
+}
 
 export default function Page() {
-  const [bal, setBal] = useState(47250);
-  const [balUSD, setBalUSD] = useState(29.84);
-  const [level, setLevel] = useState(46);
-  const [xp, setXp] = useState(4620);
-  const [msg, setMsg] = useState("");
-  const [showSplash, setShowSplash] = useState(true);
-  const [worldMode, setWorldMode] = useState(false);
-  const [convertNaira, setConvertNaira] = useState(100000);
-  const [activeTab, setActiveTab] = useState("High-Value");
+  const [lang, setLang] = useState<keyof typeof LANGS>('pidgin')
+  const [showWelcome, setShowWelcome] = useState(true)
+  const [tab, setTab] = useState('foryou')
+  const [balance, setBalance] = useState(306950)
+  const [gift, setGift] = useState<any>(null)
+  const [liked, setLiked] = useState<Set<number>>(new Set())
+  const [saved, setSaved] = useState<Set<number>>(new Set())
 
-  useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 2500);
-    return () => clearTimeout(t);
-  }, []);
+  const t = (key:string) => TRANSLATIONS[key]?.[lang] || TRANSLATIONS[key]?.['english'] || key
 
-  const gift = (name, price, xpAdd, usd) => {
-    // FIXED: Ensure it works on mobile
-    const keep = Math.round(price * 0.75);
-    const keepUSD = (usd * 0.75).toFixed(2);
-    setBal(b => b + keep);
-    setBalUSD(b => +(b + parseFloat(keepUSD)).toFixed(2));
-    setLevel(l => Math.min(100, l + (xpAdd > 10 ? 1 : 0)));
-    setXp(x => x + xpAdd * 12);
-    setMsg(name + " dropped! Kept N" + keep + " ($" + keepUSD + ") +" + xpAdd + " XP");
-    setTimeout(() => setMsg(""), 3500);
-    // Vibrate on mobile
-    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
-  };
+  const gifts = [
+    {name:'Fire', price:1000, emoji:'🔥', cut:'70%', dark:false},
+    {name:'Diamond', price:5000, emoji:'💎', cut:'70%', dark:false},
+    {name:'Rocket', price:10000, emoji:'🚀', cut:'70%', dark:false},
+    {name:'Lion', price:25000, emoji:'🦁', cut:'70%', dark:false},
+    {name:'Eagle', price:50000, emoji:'🦅', cut:'80% at Lvl 71+', dark:true, label:'BEYOND TIKTOK'},
+    {name:'Crown', price:100000, emoji:'👑', cut:'80%', dark:true},
+    {name:'Private Jet', price:500000, emoji:'✈️', cut:'90% at Lvl 100 EZE', dark:true, full:true, label:'LEVEL 100 EZE'},
+  ]
 
-  const usdRate = 1583;
-  const gbpRate = 2043;
+  const feed = [
+    {id:1, user:'@Sade_Lagos', title:'Lagos Night Vibes • How I made N1M from live', score:92, views:'12.4k', gifts:'N892k', level:92, tag:'Business 95/100', color:'from-orange-600 to-yellow-600', saves:3400, friends:12, days:2, is2G:false},
+    {id:2, user:'@JapaKing', title:'Japa UK Secrets They Hide - Part 2', score:98, views:'28.1k', gifts:'N1.2M', level:100, tag:'Japa 98/100', color:'from-blue-600 to-purple-600', saves:5400, friends:22, days:1, is2G:false},
+    {id:3, user:'@Ada_Business', title:'How I Built Store with N50k', score:97, views:'15.2k', gifts:'N540k', level:88, tag:'Business 97/100', color:'from-emerald-600 to-teal-600', saves:2100, friends:8, days:5, is2G:true},
+    {id:4, user:'@VillageChill', title:'2G Live from Village - 15kb/s', score:90, views:'8.4k', gifts:'N120k', level:71, tag:'2G READY', color:'from-zinc-700 to-zinc-900', saves:900, friends:4, days:3, is2G:true},
+  ]
+
+  const ranked = feed.map(v=>{
+    const chillScore = v.score*0.4 + (v.saves/100)*0.3 + v.friends*0.2 + (v.is2G?10:0)
+    const earnForever = parseInt(v.gifts.replace(/[^0-9]/g,'')) / (v.days*0.1 + 1)
+    return {...v, chillScore, earnForever}
+  }).sort((a,b)=> (b.chillScore+b.earnForever) - (a.chillScore+a.earnForever))
 
   return (
-    <div style={{minHeight:'100vh', background:'#FFF9E9', fontFamily:'system-ui', color:'#0A0A0A'}}>
-      
-      {/* FIXED SPLASH - pointerEvents none when hidden */}
-      <div style={{
-        position:'fixed', inset:0, zIndex:9999, background:'#0A0A0A', 
-        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-        opacity: showSplash ? 1 : 0,
-        pointerEvents: showSplash ? 'auto' : 'none',
-        transition:'opacity 0.5s ease'
-      }}>
-        <div style={{fontSize:52}}>🔥</div>
-        <h1 style={{color:'white', fontSize:36, fontWeight:900, marginTop:10}}>CHAT & CHILL</h1>
-        <div style={{display:'flex', gap:8, marginTop:10, fontSize:12, color:'#FFD700', fontWeight:800}}>
-          <span>Lagos</span><span>•</span><span>London</span><span>•</span><span>Houston</span><span>•</span><span>Worldwide</span>
-        </div>
-        <div style={{marginTop:12, background:'#FF5A1F', color:'white', padding:'6px 14px', borderRadius:20, fontSize:11, fontWeight:900}}>BEYOND TIKTOK - LEVEL 46 → 100</div>
-        <button onClick={()=>setShowSplash(false)} style={{marginTop:20, background:'white', color:'black', border:'none', padding:'8px 16px', borderRadius:20, fontSize:11, fontWeight:900, cursor:'pointer'}}>TAP TO ENTER →</button>
-      </div>
+    <div className="min-h-screen bg-[#FFFBEB]">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,900&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@700&display=swap');
+      .fraunces{font-family:'Fraunces',serif} .space{font-family:'Space Grotesk',sans-serif} .mono{font-family:'JetBrains Mono',monospace}`}</style>
 
-      <header style={{position:'sticky', top:0, zIndex:50, background:'rgba(255,249,233,0.95)', borderBottom:'1px solid #E5E0D5', padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-        <div style={{display:'flex', alignItems:'center', gap:8, cursor:'pointer'}} onClick={()=>setShowSplash(true)}>
-          <div style={{width:32, height:32, background:'#0A0A0A', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', color:'#FF5A1F', fontWeight:900}}>C</div>
-          <b style={{fontSize:13}}>CHAT & CHILL</b>
-          <span style={{background:'#FF5A1F', color:'white', fontSize:8, padding:'2px 6px', borderRadius:10, fontWeight:900}}>WORLDWIDE</span>
-        </div>
-        <div style={{display:'flex', gap:6}}>
-          <button onClick={()=>setWorldMode(!worldMode)} style={{fontSize:10, fontWeight:800, padding:'6px 10px', borderRadius:20, border:'1px solid #000', background: worldMode ? '#000' : 'white', color: worldMode ? 'white' : 'black', cursor:'pointer'}}>{worldMode ? "🌍 Worldwide" : "🇳🇬 Lagos"}</button>
-          <span style={{fontSize:9, background:'#10B981', color:'white', padding:'4px 8px', borderRadius:20, fontWeight:800}}>2G • 0.3s</span>
-        </div>
-      </header>
-
-      <div style={{maxWidth:1180, margin:'0 auto', padding:16, paddingBottom:100}}>
-
-        <div style={{background:'#0A0A0A', color:'white', borderRadius:24, padding:20, marginBottom:16}}>
-          <h1 style={{fontSize:28, fontWeight:900, lineHeight:0.95}}>Talk Cool,<br/>Stay Chill<br/><span style={{color:'#FF5A1F'}}>+ Earn 70-85%</span></h1>
-          <p style={{fontSize:12, color:'#AAA', marginTop:10}}>TikTok 50% cut vs We 70-85% • 2G 15kb/s • Diaspora USD GBP EUR</p>
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:14}}>
-            <div style={{background:'rgba(255,255,255,0.08)', borderRadius:12, padding:10}}><div style={{fontSize:10, color:'#888'}}>BALANCE</div><div style={{fontWeight:900}}>N{bal.toLocaleString()} • ${balUSD}</div><div style={{fontSize:9, color:'#FFD700'}}>LVL {level} BEAT TIKTOK!</div></div>
-            <div style={{background:'rgba(255,255,255,0.08)', borderRadius:12, padding:10}}><div style={{fontSize:10, color:'#888'}}>VS TIKTOK</div><div style={{fontWeight:900}}>0.3s vs 5s</div><div style={{fontSize:9, color:'#10B981'}}>15kb/s vs 500kb/s</div></div>
+      <div className="max-w-[430px] mx-auto bg-[#FFFBEB] min-h-screen border-x border-orange-100/50 relative">
+        {/* Header with LANG */}
+        <div className="sticky top-0 z-20 bg-[#FFFBEB]/90 backdrop-blur-xl px-3 py-3 flex justify-between border-b border-orange-100 items-center">
+          <div className="flex gap-2 items-center"><div className="w-8 h-8 rounded-full bg-black text-white grid place-items-center">⚡</div><div className="px-2 py-1 rounded-full bg-black text-white text-[10px] mono">N{balance.toLocaleString()}</div></div>
+          <div className="flex gap-1 overflow-x-auto">
+            {Object.entries(LANGS).map(([k,v])=>(
+              <button key={k} onClick={()=>setLang(k as any)} className={`px-2 py-1 rounded-full text-[9px] font-bold border ${lang===k?'bg-black text-white border-black':'bg-white border-orange-200'}`}>{v.flag} {v.label}</button>
+            ))}
           </div>
-          <div style={{marginTop:12}}>
-            <div style={{display:'flex', justifyContent:'space-between', fontSize:9, fontWeight:800, color:'#888'}}><span>TIKTOK MAX 46</span><span>CHILL MAX 100</span></div>
-            <div style={{height:8, background:'#222', borderRadius:10, marginTop:4}}><div style={{width: level + '%', height:'100%', background:'linear-gradient(90deg,#FF5A1F,#FFD700)', borderRadius:10}}></div></div>
-            <div style={{fontSize:10, color:'#AAA', marginTop:4}}>{xp}/10000 XP to Level 100 EZE</div>
-          </div>
+          <div className="w-7 h-7 rounded-full bg-black text-white grid place-items-center text-[10px] font-bold border-2 border-orange-500">YO</div>
         </div>
 
-        <div style={{background:'white', borderRadius:20, padding:14, marginBottom:12}}>
-          <h3 style={{fontSize:12, fontWeight:900}}>🚀 1. BETTER MONETIZATION - 70-85% Payout</h3>
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:10}}>
-            <button onClick={()=>setMsg("Subscription Bronze N2k activated!")} style={{background:'#FFF0E9', borderRadius:12, padding:10, border:'1px dashed #FF5A1F', textAlign:'left', cursor:'pointer'}}><b style={{fontSize:11}}>70-85% Payout</b><div style={{fontSize:10, color:'#666'}}>vs TikTok 50% - TAP</div></button>
-            <button onClick={()=>setMsg("Digital store - Sell course inside live!")} style={{background:'#FFF9E9', borderRadius:12, padding:10, border:'none', textAlign:'left', cursor:'pointer'}}><b style={{fontSize:11}}>Digital Goods</b><div style={{fontSize:10, color:'#666'}}>Sell inside live - TAP</div></button>
-          </div>
-        </div>
-
-        <div style={{background:'#0A0A0A', color:'white', borderRadius:20, padding:14, marginBottom:12}}>
-          <h4 style={{fontSize:11, fontWeight:900}}>🌍 WORLDWIDE FX - TAP TO CONVERT</h4>
-          <div style={{background:'rgba(255,255,255,0.08)', borderRadius:12, padding:10, marginTop:10, display:'flex', gap:6, alignItems:'center'}}>
-            <input type="number" value={convertNaira} onChange={e=>setConvertNaira(Number(e.target.value))} style={{width:90, padding:'6px 8px', borderRadius:8, border:'none', fontSize:11, fontWeight:800}} />
-            <span style={{fontSize:10}}>NGN = ${(convertNaira/usdRate).toFixed(2)} / £{(convertNaira/gbpRate).toFixed(2)}</span>
-          </div>
-          <button onClick={()=>{ setConvertNaira(100000); setMsg("Converted N100k to $63.16 - Sent to Mama in 8s!"); }} style={{marginTop:8, background:'#FF5A1F', color:'white', border:'none', padding:'8px 14px', borderRadius:20, fontSize:10, fontWeight:900, cursor:'pointer', width:'100%'}}>SEND TO NAIJA 1.2% FEE - TAP</button>
-        </div>
-
-        <h3 style={{fontSize:13, fontWeight:900, marginBottom:8}}>🔴 LIVE ROOMS - TAP TO JOIN</h3>
-        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:16}}>
-          {[
-            {n:'Lagos Night', v:'4.2k'},
-            {n:'London Link-Up', v:'2.1k'},
-            {n:'Houston Hustle', v:'1.8k'},
-            {n:'Naija x Diaspora', v:'5.4k'},
-          ].map(r=>(
-            <button key={r.n} onClick={()=>setMsg("Joining "+r.n+" live...")} style={{background:'white', borderRadius:16, padding:12, border:'none', textAlign:'left', cursor:'pointer', borderLeft:'4px solid #FF5A1F'}}>
-              <div style={{display:'flex', justifyContent:'space-between'}}><span style={{fontSize:8, background:'red', color:'white', padding:'2px 6px', borderRadius:10, fontWeight:900}}>LIVE</span><span style={{fontSize:9, fontWeight:800}}>{r.v}</span></div>
-              <div style={{fontWeight:900, fontSize:11, marginTop:6}}>{r.n}</div>
-              <div style={{fontSize:9, color:'#666'}}>TAP TO JOIN</div>
-            </button>
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto">
+          {['foryou','live','rooms','leaderboard','wallet'].map(k=>(
+            <button key={k} onClick={()=>setTab(k)} className={`px-4 py-2 rounded-full text-sm font-bold capitalize ${tab===k?'bg-black text-white':'bg-black/5'}`}>{k==='foryou'?t('forYou'):t(k) || k}</button>
           ))}
         </div>
 
-        <h3 style={{fontSize:13, fontWeight:900, marginBottom:8}}>🎁 GIFTS - TAP TO SEND - Beyond TikTok</h3>
-        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
-          <button onClick={()=>gift('Fire',1000,1,0.63)} style={{background:'white', borderRadius:16, padding:14, border:'none', textAlign:'left', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}><div style={{fontSize:24}}>🔥</div><div style={{fontWeight:900, fontSize:12}}>Fire</div><div style={{fontSize:11}}>N1,000 / $0.63</div><div style={{fontSize:8, background:'#FF5A1F', color:'white', display:'inline-block', padding:'3px 8px', borderRadius:10, marginTop:6, fontWeight:900}}>TAP - 70%</div></button>
-          <button onClick={()=>gift('Diamond',5000,2,3.16)} style={{background:'white', borderRadius:16, padding:14, border:'none', textAlign:'left', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}><div style={{fontSize:24}}>💎</div><div style={{fontWeight:900, fontSize:12}}>Diamond</div><div style={{fontSize:11}}>N5,000 / $3.16</div><div style={{fontSize:8, background:'#FF5A1F', color:'white', display:'inline-block', padding:'3px 8px', borderRadius:10, marginTop:6, fontWeight:900}}>TAP - 70%</div></button>
-          <button onClick={()=>gift('Rocket',10000,5,6.32)} style={{background:'white', borderRadius:16, padding:14, border:'none', textAlign:'left', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}><div style={{fontSize:24}}>🚀</div><div style={{fontWeight:900, fontSize:12}}>Rocket</div><div style={{fontSize:11}}>N10,000 / $6.32</div><div style={{fontSize:8, background:'#FF5A1F', color:'white', display:'inline-block', padding:'3px 8px', borderRadius:10, marginTop:6, fontWeight:900}}>TAP - 70%</div></button>
-          <button onClick={()=>gift('Lion',25000,10,15.79)} style={{background:'white', borderRadius:16, padding:14, border:'none', textAlign:'left', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}><div style={{fontSize:24}}>🦁</div><div style={{fontWeight:900, fontSize:12}}>Lion</div><div style={{fontSize:11}}>N25,000 / $15.79</div><div style={{fontSize:8, background:'#FF5A1F', color:'white', display:'inline-block', padding:'3px 8px', borderRadius:10, marginTop:6, fontWeight:900}}>TAP - 70%</div></button>
-          <button onClick={()=>gift('Eagle',50000,20,31.58)} style={{background:'#000', color:'white', borderRadius:16, padding:14, border:'none', textAlign:'left', cursor:'pointer'}}><div style={{fontSize:24}}>🦅</div><div style={{fontWeight:900, fontSize:12}}>Eagle</div><div style={{fontSize:11}}>N50,000 / $31.58</div><div style={{fontSize:8, background:'#FFD700', color:'black', display:'inline-block', padding:'3px 8px', borderRadius:10, marginTop:6, fontWeight:900}}>BEYOND TIKTOK 80%</div></button>
-          <button onClick={()=>gift('Crown',100000,30,63.16)} style={{background:'#000', color:'white', borderRadius:16, padding:14, border:'none', textAlign:'left', cursor:'pointer'}}><div style={{fontSize:24}}>👑</div><div style={{fontWeight:900, fontSize:12}}>Crown</div><div style={{fontSize:11}}>N100,000 / $63.16</div><div style={{fontSize:8, background:'#FFD700', color:'black', display:'inline-block', padding:'3px 8px', borderRadius:10, marginTop:6, fontWeight:900}}>BEYOND TIKTOK 80%</div></button>
-          <button onClick={()=>gift('Private Jet',250000,50,157.9)} style={{background:'#000', color:'white', borderRadius:16, padding:14, border:'none', textAlign:'left', cursor:'pointer', gridColumn:'span 2'}}><div style={{fontSize:24}}>✈️</div><div style={{fontWeight:900, fontSize:12}}>Private Jet - LEVEL 100 EZE</div><div style={{fontSize:11}}>N250,000 / $157.90 - BEATS TIKTOK</div><div style={{fontSize:8, background:'#FFD700', color:'black', display:'inline-block', padding:'3px 8px', borderRadius:10, marginTop:6, fontWeight:900}}>85% KEEP - TAP</div></button>
+        {showWelcome && (
+          <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl grid place-items-center p-4">
+            <div className="bg-[#FFFBEB] rounded-[32px] p-6 w-full max-w-[380px] border-2 border-black shadow-[8px_8px_0px_#000] text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FF5722] via-[#FFD600] to-[#FF5722]"/>
+              <div className="w-20 h-20 mx-auto rounded-full bg-black grid place-items-center text-3xl border-2 border-[#FF5722]">🌍❤️</div>
+              <h1 className="fraunces text-[28px] font-black leading-none mt-4">{t('welcomeTitle')}</h1>
+              <p className="space text-[12px] font-bold mt-1 text-[#FF5722]">{t('welcomeSub')}</p>
+              <p className="space text-[10px] font-bold mt-1">{t('electrified')}</p>
+              <p className="text-[11px] text-black/60 mt-1">{t('africaDiaspora')}</p>
+              
+              <div className="flex gap-1 justify-center mt-3 flex-wrap">
+                {Object.entries(LANGS).map(([k,v])=>(
+                  <button key={k} onClick={()=>setLang(k as any)} className={`px-2 py-1 rounded-full text-[8px] font-black border ${lang===k?'bg-black text-white':'bg-white'}`}>{v.flag} {v.label}</button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 mt-4 text-left">
+                <div className="bg-white rounded-xl p-2 border text-center"><p className="text-[9px] mono font-black">⚡ 0.3s</p><p className="text-[8px]">LiveKit</p></div>
+                <div className="bg-white rounded-xl p-2 border text-center"><p className="text-[9px] mono font-black">❤️ 70%</p><p className="text-[8px]">{t('oneFamily')}</p></div>
+                <div className="bg-white rounded-xl p-2 border text-center"><p className="text-[9px] mono font-black">🌍 2G</p><p className="text-[8px]">15kb/s</p></div>
+              </div>
+
+              <div className="mt-4 bg-black text-white rounded-2xl p-3 text-left">
+                <p className="mono text-[10px] text-[#FFD600] font-bold">ONE FAMILY • IYALI DAYA • IDILE KAN • OTU EZINULO • FAMILIA MOJA</p>
+                <p className="text-[11px] mt-1">✓ {lang==='hausa'?'Duk muna magana daya': lang==='yoruba'?'A n sọ ede kan': lang==='igbo'?'Anyị na-asụ otu asụsụ': lang==='swahili'?'Tunaongea lugha moja': 'We all understand each other'}</p>
+              </div>
+
+              <button onClick={()=>setShowWelcome(false)} className="w-full mt-4 py-4 rounded-full bg-black text-white font-black text-[14px] shadow-[0px_4px_0px_#FF5722]">{t('enterApp')}</button>
+              <p className="text-[9px] mono opacity-40 mt-2">Talk Cool, Stay Chill + Earn • {t('oneFamily')} • WAF Active</p>
+            </div>
+          </div>
+        )}
+
+        {tab==='foryou' && (
+          <>
+            <div className="px-5 py-3">
+              <h1 className="fraunces text-[34px] leading-[0.9] font-black">{t('welcomeSub).split('+')[0]} <span className="text-[#FF5722]">+ Earn</span></h1>
+              <p className="space text-black/60 text-xs mt-1">{t('oneFamily')} • TikTok stops at 46, we go to 100! • 0.3s LiveKit • 2G 15kb/s</p>
+              <div className="mt-3 bg-white rounded-[20px] p-4 border border-orange-100">
+                <div className="flex justify-between text-[9px] mono font-bold"><span>TIKTOK 46</span><span>CHILL 100</span></div>
+                <div className="h-3 bg-black/5 rounded-full mt-2 overflow-hidden"><div className="h-full w-full bg-gradient-to-r from-[#FF5722] to-orange-400 rounded-full"/></div>
+                <p className="text-[10px] mono text-black/40 mt-2">{t('oneFamily')} • Algorithm v102 • Earn Forever • {lang.toUpperCase()}</p>
+              </div>
+            </div>
+
+            <div className="px-3 space-y-4">
+              {ranked.map(v=>(
+                <div key={v.id} className="rounded-[28px] overflow-hidden bg-black text-white border border-white/10">
+                  <div className={`h-[280px] bg-gradient-to-br ${v.color} p-5 flex flex-col justify-between relative`}>
+                    <div className="flex justify-between"><span className="px-2 py-1 rounded-full bg-red-500 text-[10px] font-black">LIVE • {v.views}</span><span className="px-3 py-1 rounded-full bg-[#FFD600] text-black text-[10px] font-black">Lvl {v.level}</span></div>
+                    <div><h3 className="fraunces text-[20px] font-black leading-none">{v.title}</h3><p className="text-white/70 text-xs mt-1">{v.user} • ChillScore {v.chillScore.toFixed(0)}</p></div>
+                    <div className="absolute right-3 bottom-20 flex flex-col gap-2">
+                      <button onClick={()=>{const s=new Set(liked); s.has(v.id)?s.delete(v.id):s.add(v.id); setLiked(s)}} className={`w-11 h-11 rounded-full bg-white/10 grid place-items-center ${liked.has(v.id)?'bg-red-500':''}`}>❤️</button>
+                      <button onClick={()=>setGift(v)} className="w-11 h-11 rounded-full bg-white/10 grid place-items-center">🎁</button>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-[#111] flex gap-2 text-[10px]"><div className="flex-1 bg-white/5 rounded-xl p-2"><p className="mono opacity-50">VIEWERS</p><p className="font-black">{v.views}</p></div><div className="flex-1 bg-[#FF5722] rounded-xl p-2"><p className="mono">CUT</p><p className="font-black">70%→85%</p></div></div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4">
+              <h2 className="fraunces text-[22px] font-black">{t('gifts')} - Bal N{balance.toLocaleString()}</h2>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                {gifts.map(g=>(
+                  <button key={g.name} onClick={()=>setGift(g)} className={`text-left rounded-[22px] p-4 border ${g.dark?'bg-black text-white':'bg-white'} ${g.full?'col-span-2':''}`}>
+                    <div className="text-2xl">{g.emoji}</div><p className="font-black text-sm">{g.name}</p><p className="mono text-[10px]">N{g.price.toLocaleString()}</p><span className={`mt-1 inline-block px-2 py-1 rounded-full text-[10px] mono font-bold ${g.dark?'bg-[#FFD600] text-black':'bg-[#FF5722] text-white'}`}>{g.cut}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {gift && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur grid place-items-center p-4">
+            <div className="bg-white rounded-[24px] p-5 w-full max-w-[340px]">
+              <div className="flex justify-between"><h3 className="fraunces text-lg font-black">{t('sendGift')}</h3><button onClick={()=>setGift(null)}>✕</button></div>
+              <div className="mt-4 bg-[#FFFBEB] rounded-2xl p-4 text-center border"><div className="text-4xl">{gift.emoji||'🎁'}</div><p className="font-black mt-1">{gift.name||gift.title}</p><p className="mono text-sm">N{(gift.price||1000).toLocaleString()}</p></div>
+              <button onClick={()=>{setBalance(b=>b+Math.floor((gift.price||1000)*0.7)); setGift(null);}} className="w-full mt-4 py-4 rounded-full bg-black text-white font-black">Pay • N{(gift.price||1000).toLocaleString()}</button>
+              <p className="text-[10px] mono text-center opacity-40 mt-2">{t('oneFamily')} • Secured</p>
+            </div>
+          </div>
+        )}
+
+        <div className="sticky bottom-0 bg-[#FFFBEB]/90 backdrop-blur-xl border-t border-orange-100 px-2 py-2 flex justify-around">
+          {[{k:'foryou',i:'👑'},{k:'live',i:'🔴'},{k:'rooms',i:'⬢'},{k:'wallet',i:'💼'}].map(t=>(
+            <button key={t.k} onClick={()=>setTab(t.k)} className={`flex flex-col items-center px-3 py-1 rounded-full ${tab===t.k?'bg-black text-white':'text-black/50'}`}><span>{t.i}</span><span className="text-[8px] mono font-bold">{LANGS[lang].label}</span></button>
+          ))}
         </div>
-
-        {msg && <div style={{position:'fixed', bottom:30, left:'50%', transform:'translateX(-50%)', background:'#000', color:'white', padding:'14px 22px', borderRadius:30, fontSize:12, fontWeight:800, zIndex:100, boxShadow:'0 8px 24px rgba(0,0,0,0.4)', textAlign:'center'}}>{msg}<br/><span style={{fontSize:10, color:'#FFD700'}}>Bal: N{bal.toLocaleString()} • ${balUSD}</span></div>}
-
       </div>
     </div>
-  );
+  )
 }
