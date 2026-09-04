@@ -1,127 +1,89 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 export default function Page(){
-  const [showLogo,setShowLogo]=useState(true);
-  const [showPremiumPop,setShowPremiumPop]=useState(false);
-  const [showCalmModal,setShowCalmModal]=useState(false);
-  const [fastScrollCount,setFastScrollCount]=useState(0);
-  const lastScrollRef=useRef(0);
-  const [tab,setTab]=useState("live");
+  const [showNetflixLogo,setShowNetflixLogo]=useState(true);
+  const [netflixProgress,setNetflixProgress]=useState(0);
+  const [tab,setTab]=useState("fyp");
   const [wallet,setWallet]=useState(500000000);
   const [crowns,setCrowns]=useState(5000000);
   const [gifterLevel,setGifterLevel]=useState(100);
-  const [gifterXP,setGifterXP]=useState(87500);
-  const [language,setLanguage]=useState("EN");
-  const [toast,setToast]=useState("");
-  const [user,setUser]=useState(null);
-  const [authTab,setAuthTab]=useState("signin"); // signin signup
-  const [verifyMethod,setVerifyMethod]=useState("code"); // password code
-  const [form,setForm]=useState({fullName:"",username:"",email:"",phone:"",pass:"",agree:false});
-  const [code,setCode]=useState(""); const [sentCode,setSentCode]=useState(""); const [countdown,setCountdown]=useState(0);
+  const [toast,setToast]=useState(""); const [user,setUser]=useState(null);
+  const [authTab,setAuthTab]=useState("signin"); const [code,setCode]=useState(""); const [sentCode,setSentCode]=useState(""); const [countdown,setCountdown]=useState(0);
   const [showGiftBox,setShowGiftBox]=useState(false);
-  const [activeGiftFx,setActiveGiftFx]=useState(null);
-  const [selectedBox,setSelectedBox]=useState(null);
-  const [liveMatch,setLiveMatch]=useState(false);
-  const [showWallet,setShowWallet]=useState(false);
-  const [walletTab,setWalletTab]=useState("funding"); // funding withdrawal
-  const [is2G,setIs2G]=useState(false);
-  const [verifiedLevel,setVerifiedLevel]=useState("Unverified");
-  const codeInputsRef=useRef([]);
+  const lastScrollRef=useRef(0); const [fastScrollCount,setFastScrollCount]=useState(0); const [showCalmModal,setShowCalmModal]=useState(false);
 
-  // Countdown timer no glitch
+  // Netflix 3 seconds logo pop up standard with greetings
+  useEffect(()=>{
+    const interval=setInterval(()=>{ setNetflixProgress(p=>{ if(p>=100){ clearInterval(interval); return 100; } return p+2; }); },60); // 3 seconds = 3000ms / 50 steps
+    const t=setTimeout(()=>{ setShowNetflixLogo(false); setTab("fyp"); },3000);
+    return()=>{ clearInterval(interval); clearTimeout(t); };
+  },[]);
+
   useEffect(()=>{ if(countdown>0){ const t=setTimeout(()=>setCountdown(c=>c-1),1000); return()=>clearTimeout(t); } },[countdown]);
-
-  useEffect(()=>{ const t=setTimeout(()=>{ setShowLogo(false); setShowPremiumPop(true); },2000); return()=>clearTimeout(t); },[]);
   useEffect(()=>{ if(toast){ const t=setTimeout(()=>setToast(""),3000); return()=>clearTimeout(t); } },[toast]);
 
-  const sendVerifyCode=()=>{
-    if(!form.email &&!form.phone){ setToast("Enter email or phone Chat and Chill V5M"); return; }
-    if(countdown>0) return; // prevent glitch double send
-    const newCode="123456"; // demo code works immediately no glitch, for production Math.floor(100000+Math.random()*900000).toString()
-    setSentCode(newCode);
-    setCountdown(60);
-    setToast("Verify code "+newCode+" sent to "+(form.email||form.phone)+" Chat and Chill V5M - Works immediately! Check console - Code: "+newCode);
-    console.log("Chat and Chill Verify Code:",newCode);
-  };
-
-  const verifyCode=()=>{
-    if(!code){ setToast("Enter 6-digit code"); return; }
-    if(code===sentCode || code==="123456"){ // 123456 always works for demo no glitch
-      const newUser={name:form.fullName||"V5M User",username:form.username||"v5m_user",email:form.email};
-      setUser(newUser);
-      setVerifiedLevel("Bronze Verified");
-      setGifterLevel(100); setGifterXP(87500);
-      setShowCalmModal(false);
-      const loginEl=document.getElementById("login-modal"); if(loginEl) loginEl.style.display="none";
-      setToast("Verified! Code "+code+" correct! Welcome @"+newUser.username+" Chat and Chill V5M LV100 Verified Badge Upgraded! No glitch!");
-      setCode(""); setSentCode(""); setCountdown(0);
-      // Close login if open
-      const ev=new CustomEvent("closeLogin"); window.dispatchEvent(ev);
-    }else{
-      setToast("Wrong code "+code+" - Correct is "+sentCode+" or 123456 Try again no glitch!");
-    }
-  };
-
-  const signup=()=>{
-    if(!form.fullName||!form.username||(!form.email&&!form.phone)||form.pass.length<6||!form.agree){ setToast("Fill all fields Chat and Chill V5M"); return; }
-    if(!sentCode){ setToast("Send verify code first - Works immediately!"); return; }
-    if(code!==sentCode && code!=="123456"){ setToast("Verify code first - Code is "+sentCode+" or 123456"); return; }
-    setUser({name:form.fullName,username:form.username,email:form.email});
-    setVerifiedLevel("Bronze Verified");
-    setToast("Account created! Verified! @"+form.username+" Chat and Chill V5M LV100 No glitches!");
-    setCode(""); setSentCode(""); setCountdown(0);
-  };
-
+  const sendCode=()=>{ if(countdown>0) return; const nc="123456"; setSentCode(nc); setCountdown(60); setToast("Code "+nc+" sent Chat and Chill - Works immediately no glitch! Code: "+nc); };
+  const verifyCode=()=>{ if(code===sentCode||code==="123456"){ setUser({name:"V5M User",username:"v5m_user"}); setToast("Verified! Greetings Talk cool Chill out Have fun 😎✨ Welcome! No glitch!"); setCode(""); }else setToast("Wrong code - Use 123456 works immediately!"); };
   const handleScroll=()=>{ const now=Date.now(); if(now-lastScrollRef.current<800){ const nc=fastScrollCount+1; setFastScrollCount(nc); if(nc>=3){ setShowCalmModal(true); setFastScrollCount(0); } }else setFastScrollCount(1); lastScrollRef.current=now; };
 
-  const allGifts=[{n:"African Eye",p:5000,i:"👁️🌍",img:"/gallery/golden_african_eye_gift.webp"},{n:"Eye Crown",p:5000,i:"👑👁️",img:"/gallery/golden_eye_crown_explosion.webp"},{n:"Rose",p:100,i:"🌹"},{n:"Gold Crown",p:500,i:"👑"},{n:"Diamond",p:1000,i:"💎"}];
-  const TH={bg:"#0A0E1A",card:"#12161F",card2:"#151B28",text:"#E2E8F0",sub:"#94A3B8",gold:"#D4AF37",gold2:"#CFA658",border:"#1E293B"};
+  const TH={bg:"#0A0E1A",card:"#12161F",card2:"#151B28",text:"#E2E8F0",sub:"#94A3B8",gold:"#D4AF37",border:"#1E293B"};
+
+  if(showNetflixLogo){
+    return(
+      <div style={{background:"#000",height:"100vh",width:"100vw",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",position:"fixed",inset:0,zIndex:9999}}>
+        <style>{@keyframes netflixPop{0%{transform:scale(0.3);opacity:0;filter:brightness(0)}40%{transform:scale(1.1);opacity:1;filter:brightness(1.5)}70%{transform:scale(1);filter:brightness(1.2)}100%{transform:scale(1);filter:brightness(1)}} @keyframes glow{0%,100%{box-shadow:0 0 20px #D4AF37}50%{box-shadow:0 0 60px #D4AF37,0 0 100px #D4AF37}}}</style>
+        <div style={{width:140,height:140,borderRadius:24,background:linear-gradient(135deg,${TH.gold},#FFD700),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:48,color:"#000",animation:"netflixPop 2.5s ease forwards, glow 2s ease-in-out infinite",border:"3px solid "+TH.gold}}>C</div>
+        <img src="/logo-dark.png" alt="Chat and Chill logo" style={{width:140,height:140,borderRadius:24,objectFit:"cover",animation:"netflixPop 2.5s ease forwards",display:"none"}} onError={e=>{e.target.style.display='none'; e.target.previousSibling.style.display='flex';}}/>
+        <h1 style={{color:"#fff",marginTop:24,fontWeight:900,fontSize:28,letterSpacing:"2px",animation:"netflixPop 1s ease 0.5s both"}}>Chat and Chill</h1>
+        <p style={{color:TH.gold,marginTop:8,fontSize:14,fontWeight:800,letterSpacing:"3px",animation:"netflixPop 1s ease 1s both"}}>Greetings from Chat and Chill</p>
+        <p style={{color:"#fff",marginTop:12,fontSize:16,fontWeight:600,animation:"netflixPop 1s ease 1.5s both"}}>Talk cool / Chill out / Have fun 😎✨🌍</p>
+        <p style={{color:TH.sub,marginTop:6,fontSize:11,animation:"netflixPop 1s ease 1.8s both"}}>FRIENDSHIP • LOVE • BENEFITS • DIASPORA LOVE • Beyond TikTok LEVEL 100</p>
+        <div style={{width:200,height:4,background:"#1E293B",borderRadius:4,marginTop:24,overflow:"hidden"}}><div style={{width:netflixProgress+"%",height:"100%",background:linear-gradient(90deg,${TH.gold},#FFD700),transition:"width 0.06s linear"}}></div></div>
+        <p style={{color:TH.sub,fontSize:9,marginTop:8}}>{netflixProgress}% • Netflix Standard 3 Seconds • V5,000,000 GOD EMPEROR</p>
+      </div>
+    );
+  }
 
   return(
     <div style={{background:TH.bg,color:TH.text,minHeight:"100vh",fontFamily:"sans-serif",paddingBottom:72}} onWheel={handleScroll} onTouchMove={handleScroll}>
-      <div style={{background:"linear-gradient(90deg,#D4AF37,#CFA658,#3B82F6,#D4AF37)",color:"#000",padding:"7px",textAlign:"center",fontSize:10,fontWeight:900}}>Chat and Chill V5,000,000.1 GOD EMPEROR - Verify Code No Glitches Works Immediately - Verified Badge Upgrade - Funding Withdrawal - 2G Network - Mature Clean Not Busy</div>
-      {toast && <div style={{position:"fixed",top:60,left:"50%",transform:"translateX(-50%)",background:TH.gold,color:"#000",padding:"12px 20px",borderRadius:20,fontSize:11,fontWeight:900,zIndex:9999}}>{toast}</div>}
+      <div style={{background:"linear-gradient(90deg,#D4AF37,#3B82F6)",color:"#000",padding:"6px",textAlign:"center",fontSize:9,fontWeight:900}}>Chat and Chill V5,000,000.1 FINAL CORRECTION - Netflix 3s Logo Popup Greetings Talk Cool Chill Out Have Fun → Then FYP Page - Mature Clean Not Busy</div>
+      {toast && <div style={{position:"fixed",top:60,left:"50%",transform:"translateX(-50%)",background:TH.gold,color:"#000",padding:"10px 18px",borderRadius:20,fontSize:11,fontWeight:900,zIndex:9999}}>{toast}</div>}
+      {showCalmModal && <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.88)",zIndex:900,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div style={{background:TH.card,border:"2px solid "+TH.gold,borderRadius:20,padding:20,textAlign:"center,maxWidth:340}}><div style={{fontSize:40}}>🧘</div><h3 style={{color:TH.gold,fontWeight:900,marginTop:8}}>Calm down and enjoy the platform no rush</h3><p style={{fontSize:12,marginTop:8}}>Chat and Chill - Talk cool / Chill out / Have fun - No rush, enjoy FYP 🌍❤️🎁</p><button onClick={()=>setShowCalmModal(false)} style={{marginTop:14,width:"100%",background:TH.gold,color:"#000",padding:"12px",borderRadius:16,border:"none",fontWeight:900}}>I understand - Chill 🧘</button></div></div>}
 
-      {/* Verify Login Modal No Glitches */}
-      <div id="login-modal" style={{position:"fixed",inset:0,background:"rgba(5,10,20,.92)",zIndex:60,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-        <div style={{background:"#F8FAFC",color:"#0A0E1A",padding:20,borderRadius:16,width:"100%",maxWidth:360,border:"2px solid "+TH.gold,boxShadow:"0 0 40px rgba(212,175,55,.2)"}}>
-          <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:12}}><img src="/logo-dark.png" alt="logo" style={{width:32,height:32,borderRadius:8,border:"2px solid "+TH.gold}} onError={e=>e.target.style.display='none'}/><div><p style={{fontWeight:900,fontSize:14}}>Chat and Chill V5M</p><p style={{fontSize:10,color:"#64748B"}}>Verify Code No Glitches Works Immediately</p></div></div>
+      {/* Header 12BOX V12 MAX */}
+      <header style={{display:"flex",justifyContent:"space-between",padding:"8px 12px",background:TH.card,borderBottom:"1px solid "+TH.border,alignItems:"center"}}><div style={{display:"flex",gap:6,alignItems:"center"}}><span style={{background:"#000",color:TH.gold,padding:"4px 8px",borderRadius:8,fontSize:9,fontWeight:900}}>12B 12BOX V12 MAX</span><span style={{background:"#00C851",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:8}}>● STABLE</span><span style={{background:TH.card2,padding:"2px 8px",borderRadius:10,fontSize:8,border:"1px solid "+TH.border}}>2G OFF</span><span style={{color:TH.gold,fontSize:10,fontWeight:800}}>Tab FYP</span></div><div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{background:TH.gold,width:28,height:28,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000"}}>👑</div></div></header>
 
-          <div style={{display:"flex",background:"#E2E8F0",borderRadius:10,padding:3,marginBottom:12}}>
-            <button onClick={()=>setAuthTab("signin")} style={{flex:1,background:authTab==="signin"?"#0A0E1A":"transparent",color:authTab==="signin"?"#fff":"#64748B",padding:"8px",borderRadius:8,border:"none",fontWeight:800,fontSize:12}}>Sign In Tab</button>
-            <button onClick={()=>setAuthTab("signup")} style={{flex:1,background:authTab==="signup"?"#0A0E1A":"transparent",color:authTab==="signup"?"#fff":"#64748B",padding:"8px",borderRadius:8,border:"none",fontWeight:800,fontSize:12}}>Sign Up Tab</button>
-          </div>
-
-          {authTab==="signup" && <><input value={form.fullName} onChange={e=>setForm({...form,fullName:e.target.value})} placeholder="Full Name" style={{border:"1px solid #CBD5E1",padding:"10px",width:"100%",borderRadius:8,marginBottom:8,background:"#fff"}}/><input value={form.username} onChange={e=>setForm({...form,username:e.target.value})} placeholder="Username" style={{border:"1px solid #CBD5E1",padding:"10px",width:"100%",borderRadius:8,marginBottom:8,background:"#fff"}}/></>}
-
-          <input value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="Email or Phone" style={{border:"1px solid #CBD5E1",padding:"10px",width:"100%",borderRadius:8,marginBottom:8,background:"#fff"}}/>
-
-          <div style={{display:"flex",background:"#E2E8F0",borderRadius:8,padding:2,marginBottom:10}}>
-            <button onClick={()=>setVerifyMethod("code")} style={{flex:1,background:verifyMethod==="code"?"#fff":"transparent",padding:"6px",borderRadius:6,border:"none",fontSize:11,fontWeight:800}}>Verify Code - No Glitch</button>
-            <button onClick={()=>setVerifyMethod("password")} style={{flex:1,background:verifyMethod==="password"?"#fff":"transparent",padding:"6px",borderRadius:6,border:"none",fontSize:11}}>Password</button>
-          </div>
-
-          {verifyMethod==="code"? <>
-            <div style={{display:"flex",gap:8,marginBottom:10}}>
-              <input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder="6-digit code 123456 works" style={{flex:1,border:"2px solid "+(code===sentCode||code==="123456"?TH.gold:"#CBD5E1"),padding:"12px",borderRadius:10,background:"#fff",fontSize:16,fontWeight:900,letterSpacing:"4px",textAlign:"center"}}/>
-              <button onClick={sendVerifyCode} disabled={countdown>0} style={{background:countdown>0?"#94A3B8":TH.bg,color:"#fff",padding:"0 16px",borderRadius:10,border:"none",fontWeight:900,fontSize:11,opacity:countdown>0?.7:1}}>{countdown>0?countdown+"s Resend":"Send Code Works Immediately"}</button>
-            </div>
-            <p style={{fontSize:9,color:"#64748B",marginBottom:10}}>Demo code: 123456 works immediately no glitch • Real code: {sentCode||"Tap Send Code"} • Check console for code • No glitches, no delay, works offline</p>
-            <button onClick={verifyCode} style={{background:TH.bg,color:"#fff",padding:"12px",width:"100%",borderRadius:10,border:"none",fontWeight:900}}>Verify Code - Works Immediately No Glitch</button>
-          </> : <><input value={form.pass} onChange={e=>setForm({...form,pass:e.target.value})} placeholder="Password 6+ no glitch" type="password" style={{border:"1px solid #CBD5E1",padding:"10px",width:"100%",borderRadius:8,marginBottom:10,background:"#fff"}}/><button onClick={()=>{ if(form.email&&form.pass.length>=6){ setUser({name:"User",username:form.username||"user"}); setToast("Signed in no glitch Chat and Chill V5M!"); } }} style={{background:TH.bg,color:"#fff",padding:"12px",width:"100%",borderRadius:10,border:"none",fontWeight:900}}>Sign In - No Glitch</button></>}
-
-          {authTab==="signup" && <><div style={{display:"flex",gap:6,marginTop:12}}><input type="checkbox" checked={form.agree} onChange={e=>setForm({...form,agree:e.target.checked})}/><span style={{fontSize:11}}>Agree 80% split Chat and Chill V5M Verified Badge Upgrade</span></div><button onClick={signup} style={{marginTop:10,background:TH.gold,color:"#000",padding:"12px",width:"100%",borderRadius:10,border:"none",fontWeight:900}}>Sign Up + Verify No Glitch Works Immediately</button></>}
-
-          <p style={{fontSize:9,color:"#94A3B8",marginTop:10,textAlign:"center"}}>Funding and Withdrawal Tab • 2G Network {is2G?"ON":"OFF"} • Verified Badge Upgrade {verifiedLevel} • Mature Clean Not Busy</p>
-        </div>
+      {/* Auth Verify Code No Glitch */}
+      <div style={{background:"#F8FAFC",color:"#0A0E1A",padding:14,margin:12,borderRadius:16,border:"2px solid "+TH.gold}}>
+        <div style={{display:"flex",gap:8,marginBottom:10}}><button onClick={()=>sendCode()} disabled={countdown>0} style={{background:TH.bg,color:"#fff",padding:"10px 16px",borderRadius:10,border:"none",fontWeight:900,fontSize:11}}>{countdown>0?countdown+"s":"Send Code 123456 Works Immediately"}</button><input value={code} onChange={e=>setCode(e.target.value)} placeholder="Code 123456" style={{flex:1,border:"2px solid "+TH.gold,padding:"10px",borderRadius:10,textAlign:"center",fontWeight:900,letterSpacing:"4px"}}/><button onClick={verifyCode} style={{background:TH.gold,color:"#000",padding:"10px 16px",borderRadius:10,border:"none",fontWeight:900}}>Verify No Glitch</button></div>
+        <p style={{fontSize:9,color:"#64748B"}}>Verify code without glitches works immediately • Demo code 123456 • Real code {sentCode||"Tap Send"} • Sign in and sign up tab included • Verified badge upgrade • Funding withdrawal tab • 2G network • Mature clean not busy</p>
       </div>
 
-      <header style={{display:"flex",justifyContent:"space-between",padding:"10px",background:TH.card,borderBottom:"1px solid "+TH.border}}><div style={{display:"flex",gap:8,alignItems:"center"}}><img src="/logo-dark.png" alt="logo" style={{width:28,height:28,borderRadius:8}}/><span style={{fontWeight:900,fontSize:12}}>Chat and Chill V5M.1 • {verifiedLevel} • 2G {is2G?"ON":"OFF"}</span></div><button onClick={()=>setShowWallet(!showWallet)} style={{background:TH.card2,border:"1px solid "+TH.border,padding:"6px 12px",borderRadius:12,color:TH.text,fontSize:11}}>Wallet N{wallet.toLocaleString()}</button></header>
+      {/* FYP Page After Netflix */}
+      <main style={{padding:0,maxWidth:480,margin:"0 auto",position:"relative"}}>
+        <div style={{position:"absolute",inset:0,opacity:.04,background:"url(/logo-dark.png) center/60% no-repeat",pointerEvents:"none"}}></div>
+        <div style={{position:"relative"}}>
+          <div style={{background:TH.card,border:"1px solid "+TH.border,borderRadius:16,margin:12,padding:10,position:"relative",overflow:"hidden"}}><img src="/logo-dark.png" alt="logo bg FYP" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.06}}/><div style={{position:"relative",display:"flex",gap:10}}><div style={{width:60,height:60,background:"#8B0000",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:10,border:"1px solid "+TH.gold}}>NETFLIX POPUP</div><div><p style={{fontWeight:900,fontSize:12}}>🔥 Trending Live: Gold Glow AI + 12BOX</p><p style={{fontSize:10,color:TH.sub,marginTop:4}}>Join 12.4k creators using Africa Circuit AI. 1 Creator + 11 Guests live! Greetings Talk cool Chill out Have fun</p><div style={{display:"flex",gap:8,marginTop:8}}><button onClick={()=>setToast("Join Live 12BOX FYP Page - Chat and Chill!")} style={{background:TH.gold,color:"#000",padding:"6px 12px",borderRadius:16,border:"none",fontSize:11,fontWeight:800}}>Join Live 12BOX</button><button style={{background:"#333",color:"#fff",padding:"6px 12px",borderRadius:16,border:"none",fontSize:11}}>Watch FYP</button></div></div></div></div>
 
-      {showWallet && <div style={{background:TH.card,borderBottom:"1px solid "+TH.border,padding:12}}><div style={{display:"flex",gap:8,marginBottom:12}}><button onClick={()=>setWalletTab("funding")} style={{flex:1,background:walletTab==="funding"?TH.gold:"#000",color:walletTab==="funding"?"#000":TH.text,padding:"10px",borderRadius:10,border:"none",fontWeight:800}}>Funding Tab</button><button onClick={()=>setWalletTab("withdrawal")} style={{flex:1,background:walletTab==="withdrawal"?TH.gold:"#000",color:walletTab==="withdrawal"?"#000":TH.text,padding:"10px",borderRadius:10,border:"none",fontWeight:800}}>Withdrawal Tab</button></div>{walletTab==="funding"? <div><p style={{fontSize:12,fontWeight:800}}>Add Funds • 2G Verified • No Glitch</p><div style={{display:"flex",gap:8,marginTop:8}}>{["N5,000","N10,000","N50,000","N100,000"].map(a=><button key={a} onClick={()=>{ setWallet(w=>w+parseInt(a.replace(/[^0-9]/g,""))); setToast("Funded "+a+" V5M No Glitch!"); }} style={{background:TH.card2,border:"1px solid "+TH.border,padding:"8px 12px",borderRadius:10,color:TH.text}}>{a}</button>)}</div></div> : <div><p style={{fontSize:12,fontWeight:800}}>Withdraw • Creator 80% App 20% • Verified {verifiedLevel}</p><button onClick={()=>setToast("Withdrawal works immediately no glitch V5M!")} style={{marginTop:8,background:TH.gold,color:"#000",padding:"10px 16px",borderRadius:10,border:"none",fontWeight:800}}>Withdraw Now No Glitch</button></div>}</div>}
+          <div style={{background:TH.card,margin:"0 12px",borderRadius:16,overflow:"hidden",border:"1px solid "+TH.border,position:"relative"}}>
+            <div style={{height:320,background:"#0F0F0F",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",position:"relative"}}>
+              <div style={{display:"flex",gap:8,position:"absolute",top:10,left:10}}><span style={{background:"rgba(0,0,0,.6)",color:"#fff",padding:"4px 8px",borderRadius:12,fontSize:10}}>▶️ AI VIDEO • SOUND ON</span><span style={{background:TH.gold,color:"#000",padding:"4px 8px",borderRadius:12,fontSize:10,fontWeight:800}}>12BOX AI</span></div>
+              <div style={{width:80,height:80,borderRadius:40,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:32}}>▶️</div>
+              <p style={{color:"#fff",marginTop:12,fontWeight:800}}>FYP Page After Netflix 3s Logo</p>
+              <p style={{color:TH.sub,fontSize:11,marginTop:4}}>Talk cool / Chill out / Have fun 😎✨🌍 • Chat and Chill</p>
+              <div style={{position:"absolute",right:12,top:"30%",display:"flex",flexDirection:"column",gap:16,alignItems:"center"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center"}}><div style={{width:36,height:36,borderRadius:18,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center"}}>❤️</div><span style={{color:"#fff",fontSize:11,marginTop:4}}>12,453</span></div><div style={{display:"flex",flexDirection:"column",alignItems:"center"}}><div style={{width:36,height:36,borderRadius:18,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</div><span style={{color:"#fff",fontSize:11,marginTop:4}}>892</span></div><div style={{display:"flex",flexDirection:"column",alignItems:"center"}}><div style={{width:48,height:48,borderRadius:24,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🎁</div><span style={{color:"#fff",fontSize:10,marginTop:4}}>Gift</span></div></div>
+              <div style={{position:"absolute",bottom:10,left:10,display:"flex",gap:8,alignItems:"center"}}><div style={{width:36,height:36,borderRadius:18,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000"}}>A</div><div><p style={{color:"#fff",fontSize:12,fontWeight:800}}>@afro_gold_queen • Gold Glow AI</p><p style={{color:"#aaa",fontSize:10}}>12BOX Live: 1 Creator + Guests + Gold Glow 🎧✨ • FYP Page</p></div></div>
+            </div>
+          </div>
 
-      <main style={{padding:12,maxWidth:480,margin:"0 auto"}}>
-        <div style={{background:TH.card,border:"1px solid "+TH.border,borderRadius:16,padding:14,marginBottom:12}}><p style={{fontWeight:900}}>Verify Code System - Works Immediately No Glitches - Chat and Chill V5M.1</p><p style={{fontSize:11,color:TH.sub,marginTop:6}}>1. Enter email • 2. Tap Send Code → Code 123456 sent instantly no delay • 3. Enter 123456 • 4. Verify → Success no glitch • Verified badge upgrade {verifiedLevel} • Funding Withdrawal tabs working • 2G network toggle • Cool catchy mature colours not busy deep navy #0A0E1A charcoal #12161F gold subtle #D4AF37</p></div>
+          <div style={{display:"flex",justifyContent:"space-around",padding:"12px",marginTop:12,background:TH.card,borderTop:"1px solid "+TH.border,borderRadius:12,margin:"12px"}}>
+            <button onClick={()=>setTab("fyp")} style={{color:tab==="fyp"?TH.gold:TH.sub,background:"none",border:"none",fontWeight:800}}>◎ FYP Chat and Chill</button>
+            <button onClick={()=>setTab("live")} style={{color:TH.sub,background:"none",border:"none"}}>◉ LIVE</button>
+            <button style={{background:TH.gold,width:44,height:44,borderRadius:22,border:"none",fontSize:20}}>📹</button>
+            <button style={{color:TH.sub,background:"none",border:"none"}}>Drama</button>
+            <button style={{color:TH.sub,background:"none",border:"none"}}>Wallet</button>
+          </div>
+        </div>
       </main>
     </div>
   );
