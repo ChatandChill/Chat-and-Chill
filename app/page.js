@@ -1,75 +1,47 @@
 "use client";
 import { useState, useEffect } from "react";
-
 export default function Page(){
   const [showLogo,setShowLogo]=useState(true);
+  const [showFyp,setShowFyp]=useState(false);
   const [showLogin,setShowLogin]=useState(false);
   const [isGuest,setIsGuest]=useState(true);
+  const [tab,setTab]=useState("fyp");
+  const [theme,setTheme]=useState("dark");
   const [crowns,setCrowns]=useState(842);
-  const [wallet,setWallet]=useState(10000);
+  const [wallet,setWallet]=useState(10000000);
   const [creatorBal,setCreatorBal]=useState(0);
   const [appBal,setAppBal]=useState(0);
-  const [effectText,setEffectText]=useState("");
-  const [followers,setFollowers]=useState([
-    {id:5,name:"heritage_box",lv:58,f:842,y:false},
-    {id:2,name:"lagos_queen",lv:42,f:1200,y:true},
-    {id:3,name:"chill_master",lv:35,f:500,y:false},
-    {id:4,name:"first_verified",lv:99,f:1000,y:false},
-    {id:6,name:"clean_vibes",lv:21,f:320,y:false},
-  ]);
-
-  useEffect(()=>{ const t=setTimeout(()=>setShowLogo(false),2200); return()=>clearTimeout(t); },[]);
-
-  const crown=()=>{
-    if(isGuest){ setShowLogin(true); return; }
-    if(wallet<20){ alert("Need N20"); return; }
-    setWallet(v=>v-20); setCreatorBal(v=>v+16); setAppBal(v=>v+4);
-    setCrowns(v=>v+1);
-    setEffectText("Crowned N20 - Creator N16 80% App N4 20% - Rose 100");
-    setTimeout(()=>setEffectText(""),2500);
+  const [fypIndex,setFypIndex]=useState(0);
+  const [user,setUser]=useState(null);
+  const [form,setForm]=useState({fullName:"",username:"",email:"",pass:"",agree:false});
+  const fypVideos=[{id:1,user:"lagos_queen",cap:"1000 ONLY Lagos - Beyond TikTok LEVEL 100",likes:"1.2k",c:842},{id:2,user:"heritage_box",cap:"Verified All From Beginning - Creator 80% App 20%",likes:"892",c:1200},{id:3,user:"first_verified",cap:"Rose 100 - Crown Him N20 - V10 MILLION",likes:"2.4k",c:2100}];
+  useEffect(()=>{ const t=setTimeout(()=>{setShowLogo(false); setShowFyp(true);},2200); return()=>clearTimeout(t); },[]);
+  const handleSignup=()=>{
+    if(!form.fullName||!form.username||!form.email||form.pass.length<6||!form.agree){ alert("Fill Full Name, Username, Email, Pass 6+ and agree"); return; }
+    setUser({name:form.fullName,username:form.username}); setIsGuest(false); setShowLogin(false); setShowFyp(false);
+    setWallet(v=>v-20); setCreatorBal(v=>v+16); setAppBal(v=>v+4); setCrowns(v=>v+100);
   };
-
-  return (
-    <div style={{background:"#050507",color:"#fff",minHeight:"100vh",fontFamily:"sans-serif"}}>
-      <style>{"@keyframes pop{0%{transform:scale(.4);opacity:0}50%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}} @keyframes fadeOut{to{opacity:0;visibility:hidden}}"}</style>
-      <div style={{background:"#00C853",color:"#fff",padding:"6px",textAlign:"center",fontSize:11,fontWeight:800}}>LAUNCH TODAY - Followers 5 Following 3 Crowns {crowns} - Rose 100 Creator 80% App 20% - BUILD FIXED</div>
-      {showLogo && (
-        <div style={{position:"fixed",inset:0,background:"#050507",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>
-          <div style={{width:120,height:120,background:"#CFA658",borderRadius:24,display:"flex",alignItems:"center",justifyContent:"center",fontSize:48,fontWeight:900,color:"#000"}}>C</div>
-          <h1 style={{color:"#CFA658",marginTop:20,letterSpacing:3}}>Chat and Chill - FIRST</h1>
-          <p style={{color:"#888",fontSize:11,marginTop:8,letterSpacing:2}}>CLEAN VERIFIED - 1000 ONLY Lagos</p>
-        </div>
-      )}
-      <header style={{display:"flex",justifyContent:"space-between",padding:12,borderBottom:"1px solid #222"}}>
-        <span style={{fontSize:11,fontWeight:800}}>FOLLOWERS 5 | FOLLOWING 3 | CROWNS {crowns}</span>
-        <button onClick={()=>isGuest?setShowLogin(true):setIsGuest(true)} style={{background:"#CFA658",color:"#000",padding:"6px 12px",borderRadius:20,border:"none",fontWeight:900,fontSize:12}}>{isGuest?"Sign In":"Sign Out"}</button>
-      </header>
-      {showLogin && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.9)",zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-          <div style={{background:"#fff",color:"#000",padding:20,borderRadius:16,width:"100%",maxWidth:320}}>
-            <h3 style={{fontWeight:900}}>Sign In with your details</h3>
-            <p style={{fontSize:11,color:"#666",margin:"8px 0"}}>Crown Him N20 Creator 80% App 20% Rose 100 Verified</p>
-            <input placeholder="Your email" style={{border:"1px solid #ddd",padding:10,width:"100%",borderRadius:8,marginBottom:8}}/>
-            <input placeholder="Password" type="password" style={{border:"1px solid #ddd",padding:10,width:"100%",borderRadius:8,marginBottom:12}}/>
-            <button onClick={()=>{setIsGuest(false);setShowLogin(false);}} style={{background:"#000",color:"#fff",padding:12,width:"100%",borderRadius:8,border:"none",fontWeight:900}}>Sign In / Sign Up</button>
-            <button onClick={()=>setShowLogin(false)} style={{marginTop:8,width:"100%",border:"none",background:"none",color:"#888"}}>Cancel</button>
-          </div>
-        </div>
-      )}
+  const crown=()=>{ if(isGuest){ setShowLogin(true); return; } if(wallet<20){ alert("Fund vault"); return; } setWallet(v=>v-20); setCreatorBal(v=>v+16); setAppBal(v=>v+4); setCrowns(v=>v+1); };
+  const TH=theme==="dark"?{bg:"#050507",card:"#101012",text:"#fff",sub:"#888",gold:"#CFA658",border:"#222",nav:"#0A0A0A"}:{bg:"#FFFFFF",card:"#F6F5F2",text:"#000",sub:"#666",gold:"#CFA658",border:"#E8E2D0",nav:"#FFFFFF"};
+  const tabs=[{k:"fyp",l:"FYP",i:"◎"},{k:"create",l:"Create",i:"+"},{k:"wallet",l:"Wallet",i:"₦"},{k:"drama",l:"Drama",i:"▶️"},{k:"profile",l:"Profile",i:"◐"}];
+  return(
+    <div style={{background:TH.bg,color:TH.text,minHeight:"100vh",fontFamily:"sans-serif",paddingBottom:78}}>
+      <style>{"@keyframes pop{0%{transform:scale(.4);opacity:0}50%{transform:scale(1.18);opacity:1}100%{transform:scale(1);opacity:1}} @keyframes fadeOut{to{opacity:0;visibility:hidden}} @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}"}</style>
+      <div style={{background:"linear-gradient(90deg,#00C853,#CFA658)",color:"#000",padding:"6px",textAlign:"center",fontSize:10,fontWeight:900}}>V10M - Followers 5 Following 3 Crowns {crowns} - Rose 100 Creator 80% App 20%</div>
+      {showLogo && <div style={{position:"fixed",inset:0,background:TH.bg,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",animation:"fadeOut.6s ease 1.9s forwards"}}><div style={{width:130,height:130,borderRadius:26,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:48,fontWeight:900,color:"#000",animation:"pop 1.3s ease forwards"}}>C</div><h1 style={{color:TH.gold,marginTop:18,letterSpacing:3,fontWeight:900,animation:"pop 1.3s ease.15s both"}}>Chat & Chill</h1><p style={{color:TH.sub,fontSize:10,marginTop:6,animation:"pop 1.3s ease.3s both"}}>1000 ONLY Lagos - V10 MILLION</p></div>}
+      {showFyp && <div style={{position:"fixed",inset:0,background:"#000",zIndex:800,display:"flex",alignItems:"center",justifyContent:"center",animation:"slideUp.4s ease"}}><div style={{width:"100%",maxWidth:400,height:"100vh",background:"#0A0A0A",position:"relative",display:"flex",flexDirection:"column"}}><div style={{position:"absolute",top:10,left:10,right:10,display:"flex",justifyContent:"space-between",zIndex:5}}><span style={{color:"#fff",fontSize:11,background:"#ffffff20",padding:"4px 10px",borderRadius:20}}>FYP • FOR YOU • V10</span><button onClick={()=>setShowFyp(false)} style={{background:"#ffffff20",border:"none",color:"#fff",width:30,height:30,borderRadius:15}}>✕</button></div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#1A1A1A,#000)"}}><div style={{textAlign:"center"}}><div style={{width:80,height:80,borderRadius:20,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:900,margin:"0 auto 12px"}}>C</div><p style={{color:"#fff",fontWeight:800}}>@{fypVideos[fypIndex].user}</p><p style={{color:"#aaa",fontSize:11,marginTop:4,maxWidth:220}}>{fypVideos[fypIndex].cap}</p></div><div style={{position:"absolute",right:8,bottom:110,display:"flex",flexDirection:"column",gap:12}}><button style={{background:"#ffffff15",border:"none",width:42,height:42,borderRadius:21,color:"#fff",fontSize:12}}>❤️<br/><span style={{fontSize:8}}>{fypVideos[fypIndex].likes}</span></button><button onClick={crown} style={{background:TH.gold,border:"none",width:42,height:42,borderRadius:21,color:"#000",fontWeight:900,fontSize:12}}>👑<br/><span style={{fontSize:8}}>{fypVideos[fypIndex].c}</span></button></div></div><div style={{background:"#111",padding:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{display:"flex",gap:5}}>{fypVideos.map((_,i)=><div key={i} onClick={()=>setFypIndex(i)} style={{width:16,height:3,borderRadius:2,background:i===fypIndex?TH.gold:"#333"}}></div>)}</div><button onClick={()=>{setShowFyp(false); setShowLogin(true);}} style={{background:TH.gold,color:"#000",padding:"8px 12px",borderRadius:20,border:"none",fontWeight:900,fontSize:11}}>SIGN UP TO CROWN</button></div></div></div>}
+      <header style={{display:"flex",justifyContent:"space-between",padding:"12px 16px",borderBottom:"1px solid "+TH.border,alignItems:"center"}}><span style={{fontSize:11,fontWeight:800}}>CROWNS {crowns} • N{wallet.toLocaleString()}</span><div style={{display:"flex",gap:8,alignItems:"center"}}><button onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} style={{background:TH.card,border:"1px solid "+TH.border,width:32,height:32,borderRadius:16}}>{theme==="dark"?"☀️":"🌙"}</button><button onClick={()=>isGuest?setShowLogin(true):setIsGuest(true)} style={{background:TH.gold,color:"#000",padding:"6px 12px",borderRadius:20,border:"none",fontWeight:900,fontSize:11}}>{isGuest?"Sign In":user?"@"+user.username:"Out"}</button></div></header>
+      {showLogin && <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:60,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div style={{background:"#fff",color:"#000",padding:22,borderRadius:16,width:"100%",maxWidth:360}}><h3 style={{fontWeight:900}}>Sign Up - V10 Million</h3><p style={{fontSize:11,color:"#666",margin:"6px 0 10px"}}>Creator 80% App 20% Rose 100 Verified</p><input value={form.fullName} onChange={e=>setForm({...form,fullName:e.target.value})} placeholder="Full Name" style={{border:"1px solid #ddd",padding:11,width:"100%",borderRadius:8,marginBottom:8}}/><input value={form.username} onChange={e=>setForm({...form,username:e.target.value})} placeholder="Username" style={{border:"1px solid #ddd",padding:11,width:"100%",borderRadius:8,marginBottom:8}}/><input value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="Email" style={{border:"1px solid #ddd",padding:11,width:"100%",borderRadius:8,marginBottom:8}}/><input value={form.pass} onChange={e=>setForm({...form,pass:e.target.value})} placeholder="Password 6+ chars" type="password" style={{border:"1px solid #ddd",padding:11,width:"100%",borderRadius:8,marginBottom:10}}/><label style={{display:"flex",gap:6,fontSize:11,marginBottom:12}}><input type="checkbox" checked={form.agree} onChange={e=>setForm({...form,agree:e.target.checked})}/> I agree Creator 80% N16 App 20% N4</label><button onClick={handleSignup} style={{background:"#000",color:"#fff",padding:13,width:"100%",borderRadius:8,border:"none",fontWeight:900}}>Sign Up & Enter V10</button><button onClick={()=>setShowLogin(false)} style={{marginTop:8,width:"100%",border:"none",background:"none",color:"#888"}}>Cancel</button></div></div>}
       <main style={{padding:16,maxWidth:480,margin:"0 auto"}}>
-        <div style={{background:"#101012",padding:14,borderRadius:12,marginBottom:16}}>
-          <p style={{fontSize:13}}>{crowns} Crowns - TikTok shows likes. Instagram shows followers. We show power. 1000 ONLY Lagos. 842 Active</p>
-          <button onClick={crown} style={{marginTop:12,background:"#CFA658",color:"#000",padding:14,width:"100%",borderRadius:28,border:"none",fontWeight:900}}>Crown Him - N20 - Creator N16 (80%) App N4 (20%) - Rose 100</button>
-          {effectText && <p style={{color:"#CFA658",fontSize:11,marginTop:8,textAlign:"center",fontWeight:800}}>{effectText}</p>}
-          <div style={{display:"flex",gap:12,marginTop:12,fontSize:11,color:"#888",justifyContent:"center"}}><span>Wallet N{wallet}</span><span style={{color:"#CFA658"}}>Creator N{creatorBal} 80%</span><span>App N{appBal} 20%</span></div>
-        </div>
-        {followers.map(u=>(
-          <div key={u.id} style={{display:"flex",justifyContent:"space-between",background:"#101012",padding:12,borderRadius:12,marginBottom:8}}>
-            <div><p style={{fontSize:13,fontWeight:800}}>{u.name}</p><p style={{fontSize:10,color:"#888"}}>Lv{u.lv} - {u.f} followers</p></div>
-            <button onClick={()=>setFollowers(p=>p.map(x=>x.id===u.id?{...x,y:!x.y}:x))} style={{background:u.y?"#CFA658":"#2A2A2E",color:u.y?"#000":"#fff",padding:"6px 14px",borderRadius:18,border:"none",fontSize:11,fontWeight:800}}>{u.y?"Following":"Follow"}</button>
-          </div>
-        ))}
+        {tab==="fyp" && <div><div style={{background:TH.card,padding:14,borderRadius:12,marginBottom:12,border:"1px solid "+TH.border}}><p style={{fontSize:13}}>{crowns} Crowns - TikTok shows likes. Instagram shows followers. We show power. V10M.</p><button onClick={crown} style={{marginTop:12,background:TH.gold,color:"#000",padding:14,width:"100%",borderRadius:28,border:"none",fontWeight:900}}>Crown Him - N20 - Creator N16 80% App N4 20% - Rose 100</button></div><button onClick={()=>setShowFyp(true)} style={{width:"100%",background:TH.card,border:"1px solid "+TH.border,padding:12,borderRadius:10,marginBottom:12,fontWeight:800,color:TH.text}}>OPEN FYP ↗️ Netflix Style</button></div>}
+        {tab==="create" && <div style={{background:TH.card,padding:16,borderRadius:12,border:"1px solid "+TH.border}}><h3 style={{fontWeight:900}}>Create - Upload Video</h3><div style={{border:"2px dashed "+TH.border,height:120,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",marginTop:12,color:TH.sub}}>Tap to upload video - Rose 100</div><input placeholder="Title" style={{border:"1px solid "+TH.border,padding:10,width:"100%",borderRadius:8,marginTop:10,background:TH.bg,color:TH.text}}/><input placeholder="Description #hashtags" style={{border:"1px solid "+TH.border,padding:10,width:"100%",borderRadius:8,marginTop:8,background:TH.bg,color:TH.text}}/><div style={{marginTop:10,fontSize:11,color:TH.sub}}>Creator gets 80% N16 App 20% N4 per Crown - V10 Vault</div><button style={{marginTop:12,background:TH.gold,color:"#000",padding:12,width:"100%",borderRadius:20,border:"none",fontWeight:900}}>Publish to FYP</button></div>}
+        {tab==="wallet" && <div><div style={{background:"linear-gradient(135deg,#CFA658,#8C6A2F)",padding:16,borderRadius:12,color:"#000"}}><p style={{fontSize:11,fontWeight:800}}>VAULT - V10 MILLION</p><p style={{fontSize:28,fontWeight:900,marginTop:6}}>N{wallet.toLocaleString()}</p><div style={{display:"flex",gap:12,marginTop:10,fontSize:11,fontWeight:700}}><span>Creator N{creatorBal} 80%</span><span>App N{appBal} 20%</span></div></div><div style={{background:TH.card,padding:12,borderRadius:12,marginTop:12,border:"1px solid "+TH.border}}><p style={{fontWeight:800,fontSize:13}}>Transactions</p><p style={{fontSize:11,color:TH.sub,marginTop:6}}>No transactions - Crown Him N20 to start - Rose 100</p><button style={{marginTop:10,background:TH.text,color:TH.bg,padding:10,width:"100%",borderRadius:8,border:"none",fontWeight:800}}>Fund Wallet</button></div></div>}
+        {tab==="drama" && <div><h3 style={{fontWeight:900}}>Drama - Beyond TikTok LEVEL 100</h3><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:12}}>{[1,2,3,4].map(i=><div key={i} style={{background:TH.card,borderRadius:12,padding:8,border:"1px solid "+TH.border}}><div style={{height:90,background:"#222",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff"}}>Drama {i}</div><p style={{fontSize:11,fontWeight:800,marginTop:6}}>Lagos Love Ep {i}</p><p style={{fontSize:9,color:TH.sub}}>V10 Original</p></div>)}</div></div>}
+        {tab==="profile" && <div><div style={{background:TH.card,padding:16,borderRadius:12,border:"1px solid "+TH.border,textAlign:"center"}}>{isGuest?<div><p style={{fontWeight:900}}>Guest User</p><p style={{fontSize:11,color:TH.sub,marginTop:4}}>Sign up to join 1000 ONLY Lagos</p><button onClick={()=>setShowLogin(true)} style={{marginTop:12,background:TH.gold,color:"#000",padding:10,width:"100%",borderRadius:20,border:"none",fontWeight:900}}>Sign Up - V10</button></div>:<div><div style={{width:64,height:64,borderRadius:32,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",margin:"0 auto"}}>{user.username[0].toUpperCase()}</div><p style={{fontWeight:900,marginTop:8}}>@{user.username}</p><p style={{fontSize:11,color:TH.sub}}>{user.name} • {crowns} Crowns • Vault N{wallet.toLocaleString()}</p></div>}</div><div style={{marginTop:12,background:TH.card,padding:12,borderRadius:12,border:"1px solid "+TH.border}}><p style={{fontSize:12,fontWeight:800}}>Followers 5 Following 3</p><p style={{fontSize:11,color:TH.sub,marginTop:4}}>Creator 80% App 20% Rose 100 Verified</p></div></div>}
       </main>
+      <nav style={{position:"fixed",bottom:0,left:0,right:0,height:68,background:TH.nav,borderTop:"1px solid "+TH.border,display:"flex",justifyContent:"space-around",alignItems:"center",zIndex:40,backdropFilter:"blur(10px)"}}>
+        {tabs.map(t=>{ const active=tab===t.k; return(<button key={t.k} onClick={()=>{ setTab(t.k); if(t.k==="fyp") setShowFyp(true); }} style={{background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:2,color:active?TH.gold:TH.sub}}><div style={{width:t.k==="create"?44:28,height:t.k==="create"?44:28,borderRadius:t.k==="create"?22:14,background:t.k==="create"?TH.gold:"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:t.k==="create"?20:16,fontWeight:900,color:t.k==="create"?"#000":active?TH.gold:TH.sub,border:t.k==="create"?"none":"1px solid "+(active?TH.gold:TH.border)}}>{t.i}</div><span style={{fontSize:9,fontWeight:active?800:500}}>{t.l}</span>{t.k==="wallet" && <span style={{fontSize:7,background:TH.gold,color:"#000",padding:"1px 4px",borderRadius:6,fontWeight:900}}>N10M</span>}</button>); })}
+      </nav>
     </div>
   );
 }
