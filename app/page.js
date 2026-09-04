@@ -2,75 +2,173 @@
 import { useState, useEffect } from "react";
 export default function Page(){
   const [showLogo,setShowLogo]=useState(true);
-  const [showFyp,setShowFyp]=useState(false);
-  const [showLogin,setShowLogin]=useState(false);
+  const [showPremiumPop,setShowPremiumPop]=useState(false);
   const [isGuest,setIsGuest]=useState(true);
-  const [tab,setTab]=useState("live");
-  const [inboxTab,setInboxTab]=useState("msgs");
-  const [liveMode,setLiveMode]=useState("video");
+  const [tab,setTab]=useState("fyp");
   const [theme,setTheme]=useState("dark");
-  const [dataSaver,setDataSaver]=useState(true);
   const [quality,setQuality]=useState("144p");
   const [crowns,setCrowns]=useState(842);
   const [wallet,setWallet]=useState(10000000);
   const [creatorBal,setCreatorBal]=useState(0);
   const [appBal,setAppBal]=useState(0);
-  const [fypIndex,setFypIndex]=useState(0);
-  const [muted,setMuted]=useState(true);
-  const [effect,setEffect]=useState("gold");
-  const [chatMsg,setChatMsg]=useState("");
-  const [chats,setChats]=useState([{from:"lagos_queen",txt:"V10.1 No Crash - 12BOX Live ready 👑"},{from:"heritage_box",txt:"Invite guest to box 2-12 - 2G 144p active"}]);
-  const [boxes,setBoxes]=useState(Array(12).fill(null).map((_,i)=> i===0?{id:1,name:"YOU (Creator)",role:"creator",live:true}: i<3?{id:i+1,name:"Guest "+i,role:"guest",live:true,eye:Math.floor(Math.random()*80)+10}: {id:i+1,name:"Empty Box "+(i+1),role:"empty",live:false}));
-  const [requests,setRequests]=useState([{name:"chill_girl",id:99},{name:"movie_star",id:100}]);
+  const [toast,setToast]=useState("");
   const [user,setUser]=useState(null);
   const [form,setForm]=useState({fullName:"",username:"",email:"",pass:"",agree:false});
-  const effects=[{k:"beauty",n:"Beauty",i:"✨",t:"camera"},{k:"smooth",n:"Smooth",i:"💫",t:"camera"},{k:"bright",n:"Bright",i:"☀️",t:"camera"},{k:"blur",n:"Blur",i:"🌫️",t:"camera"},{k:"echo",n:"Echo",i:"🔊",t:"sound"},{k:"studio",n:"Studio",i:"🎙️",t:"sound"},{k:"funny",n:"Funny",i:"🤪",t:"sound"},{k:"robot",n:"Robot",i:"🤖",t:"sound"},{k:"anime",n:"Anime AI",i:"🎨",t:"ai"},{k:"cartoon",n:"Cartoon AI",i:"🖌️",t:"ai"},{k:"gold",n:"Gold AI",i:"👑",t:"ai"},{k:"circuit",n:"Circuit AI",i:"🌍",t:"ai"}];
-  const fyp=[{u:"lagos_queen",c:"AI Video 🔊",l:"1.2k"},{u:"drama_king",c:"Drama Movie Clip 🎬",l:"892"},{u:"music_vibes",c:"Music Page Hit 🎵",l:"2.4k"}];
-  const dramaMovies=[{t:"Lagos Love - Episode 1",v:"2.1k",d:"Drama"},{t:"1000 ONLY - The Movie",v:"1.8k",d:"Movie"},{t:"Chill Nights",v:"900",d:"Series"}];
-  const musicList=[{t:"Afro Chill Beat",a:"DJ Gold",v:"3k"},{t:"Circuit Vibes",a:"Heritage",v:"1.2k"},{t:"Rose 100 Anthem",a:"Lagos Queen",v:"2k"}];
-  useEffect(()=>{ const t=setTimeout(()=>{ setShowLogo(false); },2200); return()=>clearTimeout(t); },[]);
-  const signup=()=>{ try{ if(!form.fullName||!form.username||!form.email||form.pass.length<6||!form.agree) return alert("Fill all"); setUser({name:form.fullName,username:form.username}); setIsGuest(false); setShowLogin(false); setWallet(v=>v-20); setCreatorBal(v=>v+16); setAppBal(v=>v+4); setCrowns(v=>v+100);}catch(e){ alert("Try again"); } };
-  const crown=()=>{ try{ if(isGuest){ setShowLogin(true); return; } if(wallet<20) return alert("Fund vault"); setWallet(v=>v-20); setCreatorBal(v=>v+16); setAppBal(v=>v+4); setCrowns(v=>v+1);}catch{} };
-  const inviteBox=(id)=>{ try{ const r=requests[0]; if(!r) return alert("No requests"); setBoxes(b=>b.map(x=> x.id===id?{id,name:r.name,role:"guest",live:true,eye:12}:x)); setRequests(rq=>rq.slice(1)); }catch{} };
-  const declineReq=(id)=>{ setRequests(r=>r.filter(x=>x.id!==id)); };
-  const kickBox=(id)=>{ if(id===1) return; setBoxes(b=>b.map(x=> x.id===id?{id,name:"Empty Box "+id,role:"empty",live:false}:x)); };
-  const TH=theme==="dark"?{bg:"#050507",card:"#101012",text:"#fff",sub:"#888",gold:"#CFA658",border:"#222",nav:"#0A0A0A"}:{bg:"#FFF",card:"#F6F5F2",text:"#000",sub:"#666",gold:"#CFA658",border:"#E8E2D0",nav:"#FFF"};
+  const [showLogin,setShowLogin]=useState(false);
+  const [weather] = useState([
+    {city:"Lagos",temp:"32°C",cond:"☀️ Sunny",flag:"🇳🇬"},
+    {city:"London",temp:"18°C",cond:"🌧️ Rain",flag:"🇬🇧"},
+    {city:"New York",temp:"24°C",cond:"⛅ Cloudy",flag:"🇺🇸"},
+    {city:"Dubai",temp:"38°C",cond:"🔥 Hot",flag:"🇦🇪"},
+  ]);
+  const [fx] = useState([
+    {pair:"USD/NGN",rate:"1,589",change:"+0.8%"},
+    {pair:"GBP/NGN",rate:"2,012",change:"+1.2%"},
+    {pair:"EUR/NGN",rate:"1,724",change:"-0.3%"},
+    {pair:"CAD/NGN",rate:"1,165",change:"+0.5%"},
+  ]);
+  const fypVideos=[
+    {u:"lagos_queen",c:"Lagos Night Vibes - Premium Electrifying 4K 🔊 - Beyond Instagram",l:"12.4k",cr:1842,eye:342,type:"PREMIUM AI"},
+    {u:"heritage_box",c:"1000 ONLY Lagos - 1M x Upgraded 💎 - Creator 80% App 20%",l:"8.9k",cr:4200,eye:489,type:"DIASPORA"},
+    {u:"diaspora_king",c:"London to Lagos Live - Currency & Weather Inside 🌍💱",l:"5.2k",cr:3100,eye:221,type:"LIVE"},
+    {u:"ai_creator",c:"AI Gold Glow Effect - Premium Netflix Quality ✨👑",l:"15.1k",cr:5100,eye:892,type:"AI PREMIUM"},
+  ];
+  useEffect(()=>{ 
+    const t1=setTimeout(()=>{ setShowLogo(false); setShowPremiumPop(true); },2200);
+    return()=>clearTimeout(t1);
+  },[]);
+  useEffect(()=>{ if(toast){ const t=setTimeout(()=>setToast(""),3000); return()=>clearTimeout(t); } },[toast]);
+  const signup=()=>{ if(!form.fullName||!form.username||!form.email||form.pass.length<6||!form.agree){ setToast("Fill all + agree 80%"); return; } setUser({name:form.fullName,username:form.username}); setIsGuest(false); setShowLogin(false); setShowPremiumPop(false); setWallet(v=>v-20); setCreatorBal(v=>v+16); setAppBal(v=>v+4); setCrowns(v=>v+100); setToast("Welcome @"+form.username+" +100 Crowns - Premium Active"); };
+  const crown=()=>{ if(isGuest){ setShowLogin(true); return; } if(wallet<20){ setToast("Fund vault N10M"); return; } setWallet(v=>v-20); setCreatorBal(v=>v+16); setAppBal(v=>v+4); setCrowns(v=>v+1); setToast("Crown 👑 Rose 100 - Creator N16"); };
+  const TH=theme==="dark"?{bg:"#050507",card:"#101012",card2:"#15151A",text:"#fff",sub:"#888",gold:"#CFA658",gold2:"#FFD700",border:"#222",nav:"#0A0A0A"}:{bg:"#FFF",card:"#F6F5F2",card2:"#FFFFFF",text:"#000",sub:"#666",gold:"#CFA658",gold2:"#B8860B",border:"#E8E2D0",nav:"#FFF"};
   return(
-    <div style={{background:TH.bg,color:TH.text,minHeight:"100vh",fontFamily:"sans-serif",paddingBottom:76}}>
-      <style>{"@keyframes pop{0%{transform:scale(.4);opacity:0}50%{transform:scale(1.18);opacity:1}100%{transform:scale(1);opacity:1}} @keyframes fadeOut{to{opacity:0;visibility:hidden}} @keyframes wave{0%,100%{height:6px}50%{height:16px}}"}</style>
-      <div style={{background:"linear-gradient(90deg,#00C853,#CFA658)",color:"#000",padding:"5px",textAlign:"center",fontSize:9,fontWeight:900}}>V10.1 HIGHEST - NO CRASH - Crowns {crowns} - 12BOX Live - 2G {quality} - Rose 100 80% - Drama+Music</div>
-      {showLogo && <div style={{position:"fixed",inset:0,background:TH.bg,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",animation:"fadeOut.6s ease 1.9s forwards"}}><div style={{width:110,height:110,borderRadius:22,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,fontWeight:900,color:"#000",animation:"pop 1.3s ease forwards"}}>C</div><h1 style={{color:TH.gold,marginTop:12,fontWeight:900,fontSize:18,animation:"pop 1.3s ease.15s both"}}>Chat & Chill V10.1</h1><p style={{color:TH.sub,fontSize:9,animation:"pop 1.3s ease.3s both"}}>12BOX VIDEO LIVE - DRAMA MOVIES MUSIC - 2G - NO CRASH</p></div>}
-      <header style={{display:"flex",justifyContent:"space-between",padding:"8px 10px",borderBottom:"1px solid "+TH.border,alignItems:"center"}}><div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{width:26,height:26,borderRadius:6,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",fontSize:10}}>C</div><span style={{fontSize:11,fontWeight:900}}>Chat & Chill</span><span style={{fontSize:7,background:dataSaver?"#00C853":"#FF6B00",color:"#fff",padding:"2px 5px",borderRadius:8}}>{dataSaver?"2G 144p":"HD"}</span></div><div style={{display:"flex",gap:5,alignItems:"center"}}><span style={{fontSize:8,color:TH.gold,fontWeight:800}}>N{wallet.toLocaleString()}</span><button onClick={()=>setDataSaver(v=>!v)} style={{background:TH.card,border:"1px solid "+TH.border,padding:"3px 6px",borderRadius:10,fontSize:8}}>📶{dataSaver?"2G":"4G"}</button><button onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} style={{background:TH.card,border:"1px solid "+TH.border,width:26,height:26,borderRadius:13}}>{theme==="dark"?"☀️":"🌙"}</button><button onClick={()=>isGuest?setShowLogin(true):setIsGuest(true)} style={{background:TH.gold,color:"#000",padding:"4px 8px",borderRadius:14,border:"none",fontWeight:900,fontSize:9}}>{isGuest?"Sign In":user?user.username:"Out"}</button></div></header>
-      {showLogin && <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.9)",zIndex:60,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}><div style={{background:"#fff",color:"#000",padding:18,borderRadius:12,width:"100%",maxWidth:340}}><h3 style={{fontWeight:900,fontSize:14}}>Sign Up - V10.1 No Crash</h3><input value={form.fullName} onChange={e=>setForm({...form,fullName:e.target.value})} placeholder="Full Name" style={{border:"1px solid #ddd",padding:9,width:"100%",borderRadius:7,marginBottom:6,fontSize:12}}/><input value={form.username} onChange={e=>setForm({...form,username:e.target.value})} placeholder="Username" style={{border:"1px solid #ddd",padding:9,width:"100%",borderRadius:7,marginBottom:6,fontSize:12}}/><input value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="Email" style={{border:"1px solid #ddd",padding:9,width:"100%",borderRadius:7,marginBottom:6,fontSize:12}}/><input value={form.pass} onChange={e=>setForm({...form,pass:e.target.value})} placeholder="Password 6+" type="password" style={{border:"1px solid #ddd",padding:9,width:"100%",borderRadius:7,marginBottom:8,fontSize:12}}/><label style={{display:"flex",gap:5,fontSize:10,marginBottom:10}}><input type="checkbox" checked={form.agree} onChange={e=>setForm({...form,agree:e.target.checked})}/> Agree 80% Creator 20% App</label><button onClick={signup} style={{background:"#000",color:"#fff",padding:11,width:"100%",borderRadius:7,border:"none",fontWeight:900,fontSize:12}}>Sign Up +100 Crowns</button><button onClick={()=>setShowLogin(false)} style={{marginTop:6,width:"100%",border:"none",background:"none",color:"#888",fontSize:11}}>Cancel</button></div></div>}
-      <main style={{padding:10,maxWidth:480,margin:"0 auto"}}>
-        {tab==="fyp" && <div>{fyp.map((v,i)=><div key={i} style={{background:TH.card,padding:10,borderRadius:10,marginBottom:8,border:"1px solid "+TH.border}}><p style={{fontWeight:800,fontSize:12}}>@{v.u} • {v.l} • {quality}</p><div style={{height:70,background:"#111",borderRadius:8,marginTop:6,display:"flex",alignItems:"center",justifyContent:"center"}}>▶️ {v.c}</div><button onClick={crown} style={{marginTop:6,background:TH.gold,color:"#000",padding:"6px 12px",borderRadius:14,border:"none",fontWeight:800,fontSize:10}}>👑 Crown N20</button></div>)}</div>}
-        {tab==="live" && <div>
-          <div style={{display:"flex",gap:6,marginBottom:8}}><button onClick={()=>setLiveMode("video")} style={{flex:1,padding:7,borderRadius:16,border:"1px solid "+TH.border,background:liveMode==="video"?TH.gold:"#000",color:liveMode==="video"?"#000":TH.text,fontWeight:800,fontSize:11}}>VIDEO LIVE 12BOX</button><button onClick={()=>setLiveMode("audio")} style={{flex:1,padding:7,borderRadius:16,border:"1px solid "+TH.border,background:liveMode==="audio"?TH.gold:"#000",color:liveMode==="audio"?"#000":TH.text,fontWeight:800,fontSize:11}}>AUDIO LIVE</button></div>
-          {liveMode==="video"?<div>
-            <div style={{background:TH.card,padding:10,borderRadius:10,border:"1px solid "+TH.border}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><p style={{fontWeight:900,fontSize:12}}>Video Livestreaming - 12BOX</p><span style={{fontSize:9,background:TH.gold,color:"#000",padding:"2px 6px",borderRadius:8,fontWeight:800}}>{effect.toUpperCase()} ACTIVE</span></div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginTop:10}}>
-                {boxes.map(b=><div key={b.id} style={{aspectRatio:"3/4",background:b.live?"#111":"#0A0A0A",border:"2px solid "+(b.id===1?TH.gold: b.live?"#333":TH.border),borderRadius:8,position:"relative",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",padding:4}}>
-                  {b.live?<><span style={{fontSize:18}}>{b.id===1?"👑":"👤"}</span><span style={{fontSize:8,fontWeight:800,marginTop:2,textAlign:"center"}}>{b.name}</span>{b.eye && <span style={{fontSize:7,color:TH.sub,display:"flex",gap:2,alignItems:"center"}}>👁️ {b.eye}</span>}{b.id!==1 && <button onClick={()=>kickBox(b.id)} style={{position:"absolute",top:2,right:2,background:"#FF4444",border:"none",color:"#fff",width:14,height:14,borderRadius:7,fontSize:8}}>✕</button>}</>:<><span style={{fontSize:16,color:TH.sub}}>＋</span><span style={{fontSize:7,color:TH.sub}}>Empty {b.id}</span><button onClick={()=>inviteBox(b.id)} style={{marginTop:3,background:TH.gold,color:"#000",border:"none",padding:"2px 6px",borderRadius:8,fontSize:7,fontWeight:800}}>Invite</button></>}
+    <div style={{background:TH.bg,color:TH.text,minHeight:"100vh",fontFamily:"sans-serif",paddingBottom:72}}>
+      <style>{"@keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}} @keyframes goldPulse{0%,100%{box-shadow:0 0 20px #CFA658,0 0 40px #CFA65840}50%{box-shadow:0 0 40px #CFA658,0 0 80px #CFA65880}} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}} @keyframes electric{0%{filter:brightness(1)}50%{filter:brightness(1.4) drop-shadow(0 0 20px #CFA658)}100%{filter:brightness(1)}}"}</style>
+      <div style={{background:"linear-gradient(90deg,#00C853,#CFA658,#FFD700)",color:"#000",padding:"6px",textAlign:"center",fontSize:10,fontWeight:900,letterSpacing:".5px"}}>V13 PREMIUM ELECTRIFYING - 1,000,000x IG/TikTok/FB - Crowns {crowns} - 2G {quality} - Weather + FX LIVE</div>
+      {toast && <div style={{position:"fixed",top:60,left:"50%",transform:"translateX(-50%)",background:`linear-gradient(90deg,${TH.gold},${TH.gold2})`,color:"#000",padding:"10px 18px",borderRadius:24,fontSize:11,fontWeight:900,zIndex:9999,boxShadow:"0 0 30px "+TH.gold+"80"}}>{toast}</div>}
+      
+      {showLogo && <div style={{position:"fixed",inset:0,background:`radial-gradient(circle at center, #1A1500 0%, ${TH.bg} 70%)`,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>
+        <div style={{position:"absolute",inset:0,background:`url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><circle cx=%2250%25%22 cy=%2250%25%22 r=%2240%25%22 fill=%22none%22 stroke=%22${TH.gold}22%22 stroke-width=%221%22 stroke-dasharray=%225 5%22/></svg>')`,opacity:.3}}></div>
+        <img src="/logo-dark.png" alt="logo" style={{width:130,height:130,borderRadius:26,objectFit:"cover",animation:"pop 1.4s cubic-bezier(.34,1.56,.64,1) forwards, goldPulse 2s ease infinite 1.4s",zIndex:2}} onError={(e)=>{e.target.style.display='none';}}/>
+        <div style={{width:130,height:130,borderRadius:26,background:`linear-gradient(135deg,${TH.gold},${TH.gold2})`,display:"none",alignItems:"center",justifyContent:"center",fontSize:42,fontWeight:900,color:"#000",animation:"pop 1.4s cubic-bezier(.34,1.56,.64,1) forwards, goldPulse 2s ease infinite 1.4s",zIndex:2}}>C</div>
+        <h1 style={{color:TH.gold,marginTop:16,fontWeight:900,fontSize:22,letterSpacing:"2px",textShadow:"0 0 20px "+TH.gold+"80",zIndex:2}}>Chat & Chill</h1>
+        <p style={{color:TH.sub,fontSize:10,marginTop:4,letterSpacing:"3px",zIndex:2}}>BEYOND TIKTOK LEVEL 100 • PREMIUM</p>
+        <div style={{marginTop:20,display:"flex",gap:4,zIndex:2}}>{[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:3,background:TH.gold,animation:`float 1.2s ease infinite ${i*.2}s`}}></div>)}</div>
+      </div>}
+
+      {showPremiumPop && <div style={{position:"fixed",inset:0,background:"#000",zIndex:800,display:"flex",justifyContent:"center"}}>
+        <div style={{width:"100%",maxWidth:430,height:"100vh",background:`radial-gradient(circle at 30% 20%, #1A1500 0%, #000 60%)`,position:"relative",overflow:"hidden",border:`1px solid ${TH.gold}40`}}>
+          <div style={{position:"absolute",inset:0,background:`linear-gradient(180deg, transparent 0%, ${TH.bg} 85%)`,zIndex:1}}></div>
+          <div style={{position:"absolute",top:-50,left:-50,width:200,height:200,background:`radial-gradient(circle, ${TH.gold}30 0%, transparent 70%)`,borderRadius:"50%",filter:"blur(20px)",animation:"electric 3s ease infinite"}}></div>
+          <div style={{position:"absolute",bottom:100,right:-30,width:180,height:180,background:`radial-gradient(circle, ${TH.gold2}20 0%, transparent 70%)`,borderRadius:"50%",filter:"blur(25px)",animation:"electric 2.5s ease infinite .5s"}}></div>
+          
+          <div style={{position:"absolute",top:12,left:12,right:12,display:"flex",justifyContent:"space-between",zIndex:10}}>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <img src="/logo-dark.png" alt="logo" style={{width:28,height:28,borderRadius:8,border:"1px solid "+TH.gold}}/>
+              <span style={{color:"#fff",fontSize:10,background:"linear-gradient(90deg,#CFA658,#FFD700)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:900,padding:"4px 10px",borderRadius:20,border:"1px solid "+TH.gold+"40"}}>PREMIUM NETFLIX • ELECTRIFYING</span>
+            </div>
+            <button onClick={()=>setShowPremiumPop(false)} style={{background:"rgba(255,255,255,.1)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,.2)",color:"#fff",width:30,height:30,borderRadius:15,fontWeight:900}}>✕</button>
+          </div>
+
+          <div style={{position:"relative",zIndex:5,height:"100%",display:"flex",flexDirection:"column",justifyContent:"center",padding:"20px"}}>
+            <div style={{textAlign:"center",marginBottom:20}}>
+              <div style={{width:90,height:90,margin:"0 auto",borderRadius:20,background:`linear-gradient(135deg,${TH.gold},${TH.gold2})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:900,color:"#000",boxShadow:"0 0 40px "+TH.gold+"60, 0 0 80px "+TH.gold+"30",animation:"goldPulse 2s ease infinite"}}>C</div>
+              <h2 style={{color:"#fff",fontSize:24,fontWeight:900,marginTop:14,letterSpacing:"1px",textShadow:"0 0 20px "+TH.gold}}>Beyond Instagram</h2>
+              <p style={{color:TH.gold,fontSize:11,marginTop:4,fontWeight:800,letterSpacing:"2px"}}>1,000,000x TIKTOK • FACEBOOK • PREMIUM</p>
+              <p style={{color:"#aaa",fontSize:10,marginTop:6,maxWidth:300,margin:"6px auto 0",lineHeight:"14px"}}>Weather Forecast + Currency Exchange for Diaspora Creators • Audio + AI Video + 12BOX Live • Rose 100 Premium</p>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+              <div style={{background:"rgba(255,255,255,.06)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:10}}>
+                <p style={{fontSize:9,fontWeight:900,color:TH.gold,letterSpacing:"1px"}}>🌦️ WEATHER • DIASPORA</p>
+                {weather.slice(0,2).map(w=><div key={w.city} style={{display:"flex",justifyContent:"space-between",marginTop:6}}><span style={{fontSize:10,color:"#fff"}}>{w.flag} {w.city}</span><span style={{fontSize:10,color:"#aaa"}}>{w.temp} {w.cond}</span></div>)}
+              </div>
+              <div style={{background:"rgba(255,255,255,.06)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:10}}>
+                <p style={{fontSize:9,fontWeight:900,color:TH.gold,letterSpacing:"1px"}}>💱 FX • NAIRA RATES</p>
+                {fx.slice(0,2).map(f=><div key={f.pair} style={{display:"flex",justifyContent:"space-between",marginTop:6}}><span style={{fontSize:10,color:"#fff"}}>{f.pair}</span><span style={{fontSize:10,color:f.change.startsWith("+")?"#00C853":"#FF3B30"}}>{f.rate} {f.change}</span></div>)}
+              </div>
+            </div>
+
+            <div style={{background:"rgba(0,0,0,.5)",backdropFilter:"blur(16px)",border:"1px solid "+TH.gold+"30",borderRadius:16,padding:12}}>
+              <div style={{display:"flex",gap:8,overflowX:"auto"}}>
+                {fypVideos.slice(0,3).map((v,i)=><div key={i} style={{minWidth:92,background:"#111",borderRadius:10,padding:8,border:"1px solid "+TH.border}}>
+                  <div style={{height:60,background:`linear-gradient(135deg,#222,${TH.gold}20)`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎬</div>
+                  <p style={{fontSize:8,fontWeight:800,color:"#fff",marginTop:6}}>@{v.u}</p>
+                  <p style={{fontSize:7,color:TH.sub,marginTop:2}}>👁 {v.eye} • {v.type}</p>
                 </div>)}
               </div>
-              <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}><button style={{background:"#000",color:"#fff",padding:"5px 10px",borderRadius:12,border:"1px solid "+TH.border,fontSize:9}}>📷 Flip</button><button onClick={()=>setMuted(m=>!m)} style={{background:"#000",color:"#fff",padding:"5px 10px",borderRadius:12,border:"1px solid "+TH.border,fontSize:9}}>{muted?"🔇 Mic Off":"🎙️ Mic On"}</button><span style={{fontSize:9,padding:"5px 8px",background:TH.card,border:"1px solid "+TH.border,borderRadius:12}}>{quality} {dataSaver?"2G":"HD"}</span></div>
-              {requests.length>0 && <div style={{marginTop:10,background:"#000",padding:8,borderRadius:8}}><p style={{fontSize:10,fontWeight:800}}>Requests to Join Box ({requests.length}) - Moderation</p>{requests.map(r=><div key={r.id} style={{display:"flex",justifyContent:"space-between",marginTop:6,background:TH.card,padding:6,borderRadius:6}}><span style={{fontSize:11}}>@{r.name} wants Box</span><div style={{display:"flex",gap:4}}><button onClick={()=>inviteBox(boxes.find(b=>!b.live)?.id||2)} style={{background:"#00C853",color:"#fff",border:"none",padding:"3px 8px",borderRadius:10,fontSize:9,fontWeight:800}}>Invite</button><button onClick={()=>declineReq(r.id)} style={{background:"#FF4444",color:"#fff",border:"none",padding:"3px 8px",borderRadius:10,fontSize:9}}>Decline</button></div></div>)}</div>}
             </div>
-            <p style={{fontWeight:900,marginTop:12,fontSize:11}}>12BOX Effects - Camera + Sound + AI</p>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginTop:6}}>
-              {effects.map(e=><button key={e.k} onClick={()=>setEffect(e.k)} style={{background:effect===e.k?TH.gold:TH.card,border:"1px solid "+(effect===e.k?TH.gold:TH.border),padding:8,borderRadius:10,textAlign:"center"}}><div style={{fontSize:16}}>{e.i}</div><div style={{fontSize:8,fontWeight:800,marginTop:2,color:effect===e.k?"#000":TH.text}}>{e.n}</div><div style={{fontSize:6,color:effect===e.k?"#000":TH.sub}}>{e.t}</div></button>)}
+
+            <button onClick={()=>{ setShowPremiumPop(false); setShowLogin(true); }} style={{marginTop:16,background:`linear-gradient(90deg,${TH.gold},${TH.gold2})`,color:"#000",padding:"16px",borderRadius:24,border:"none",fontWeight:900,fontSize:14,letterSpacing:"1px",boxShadow:"0 0 30px "+TH.gold+"60",animation:"goldPulse 2s ease infinite"}}>⚡ ENTER PREMIUM — 1,000,000x UPGRADED</button>
+            <p style={{textAlign:"center",color:"#666",fontSize:8,marginTop:8}}>Creator 80% • App 20% • Rose 100 • Vault N10M • 2G 144p • No Crash</p>
+          </div>
+        </div>
+      </div>}
+
+      <header style={{display:"flex",justifyContent:"space-between",padding:"10px 12px",borderBottom:"1px solid "+TH.border,alignItems:"center",background:TH.card}}>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <img src="/logo-dark.png" alt="logo" style={{width:30,height:30,borderRadius:8,border:"1px solid "+TH.gold}} onError={(e)=>e.target.style.display='none'}/>
+          <div><p style={{fontSize:12,fontWeight:900,letterSpacing:".5px"}}>Chat & Chill</p><p style={{fontSize:7,color:TH.gold,fontWeight:800}}>PREMIUM ELECTRIFYING</p></div>
+          <div style={{display:"flex",gap:4,marginLeft:6}}>
+            <span style={{fontSize:7,background:"#00C853",color:"#fff",padding:"2px 5px",borderRadius:6,fontWeight:900}}>● LIVE 842</span>
+            <span style={{fontSize:7,background:TH.gold,color:"#000",padding:"2px 5px",borderRadius:6,fontWeight:900}}>2G {quality}</span>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <span style={{fontSize:9,color:TH.gold,fontWeight:800}}>N{wallet.toLocaleString()}</span>
+          <button onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} style={{background:TH.card2,border:"1px solid "+TH.border,width:28,height:28,borderRadius:14}}>{theme==="dark"?"☀️":"🌙"}</button>
+          <button onClick={()=>isGuest?setShowLogin(true):setIsGuest(true)} style={{background:`linear-gradient(90deg,${TH.gold},${TH.gold2})`,color:"#000",padding:"6px 12px",borderRadius:16,border:"none",fontWeight:900,fontSize:10}}>{isGuest?"Sign In":user?user.username:"Out"}</button>
+        </div>
+      </header>
+
+      <div style={{display:"flex",gap:6,padding:"10px 12px",overflowX:"auto",background:TH.card,borderBottom:"1px solid "+TH.border}}>
+        <div style={{display:"flex",gap:6}}>
+          {weather.map(w=><div key={w.city} style={{background:TH.card2,border:"1px solid "+TH.border,padding:"6px 10px",borderRadius:12,display:"flex",gap:6,alignItems:"center",whiteSpace:"nowrap"}}>
+            <span style={{fontSize:12}}>{w.flag}</span><div><p style={{fontSize:9,fontWeight:800}}>{w.city} {w.temp}</p><p style={{fontSize:7,color:TH.sub}}>{w.cond}</p></div>
+          </div>)}
+        </div>
+        <div style={{width:1,background:TH.border,margin:"0 4px"}}></div>
+        <div style={{display:"flex",gap:6}}>
+          {fx.map(f=><div key={f.pair} style={{background:TH.card2,border:"1px solid "+TH.gold+"30",padding:"6px 10px",borderRadius:12,whiteSpace:"nowrap"}}>
+            <p style={{fontSize:8,fontWeight:900,color:TH.gold}}>{f.pair}</p><p style={{fontSize:9,fontWeight:800}}>{f.rate} <span style={{fontSize:7,color:f.change.startsWith("+")?"#00C853":"#FF3B30"}}>{f.change}</span></p>
+          </div>)}
+        </div>
+      </div>
+
+      {showLogin && <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",backdropFilter:"blur(12px)",zIndex:60,display:"flex",alignItems:"center",justifyContent:"center",padding:18}}><div style={{background:"#fff",color:"#000",padding:22,borderRadius:16,width:"100%",maxWidth:360,border:"2px solid "+TH.gold}}><div style={{textAlign:"center",marginBottom:12}}><img src="/logo-dark.png" alt="logo" style={{width:50,height:50,borderRadius:12,margin:"0 auto"}}/><h3 style={{fontWeight:900,marginTop:8}}>Join Premium • V13</h3><p style={{fontSize:10,color:"#666"}}>1,000,000x Upgraded • Weather + FX for Diaspora</p></div><input value={form.fullName} onChange={e=>setForm({...form,fullName:e.target.value})} placeholder="Full Name" style={{border:"1px solid #ddd",padding:11,width:"100%",borderRadius:10,marginBottom:8}}/><input value={form.username} onChange={e=>setForm({...form,username:e.target.value})} placeholder="Username" style={{border:"1px solid #ddd",padding:11,width:"100%",borderRadius:10,marginBottom:8}}/><input value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="Email" style={{border:"1px solid #ddd",padding:11,width:"100%",borderRadius:10,marginBottom:8}}/><input value={form.pass} onChange={e=>setForm({...form,pass:e.target.value})} placeholder="Password 6+" type="password" style={{border:"1px solid #ddd",padding:11,width:"100%",borderRadius:10,marginBottom:12}}/><label style={{display:"flex",gap:6,fontSize:11,marginBottom:14}}><input type="checkbox" checked={form.agree} onChange={e=>setForm({...form,agree:e.target.checked})}/> Agree 80% Creator • Premium</label><button onClick={signup} style={{background:`linear-gradient(90deg,#000,${TH.gold})`,color:"#fff",padding:14,width:"100%",borderRadius:12,border:"none",fontWeight:900}}>Sign Up +100 Crowns ⚡ Premium</button><button onClick={()=>setShowLogin(false)} style={{marginTop:10,width:"100%",border:"none",background:"none",color:"#888",fontSize:12}}>Cancel</button></div></div>}
+
+      <main style={{padding:12,maxWidth:480,margin:"0 auto"}}>
+        {fypVideos.map((v,i)=><div key={i} style={{background:TH.card,border:`1px solid ${i===0?TH.gold+"60":TH.border}`,borderRadius:16,marginBottom:14,overflow:"hidden",boxShadow:i===0?`0 0 20px ${TH.gold}20`:"none"}}>
+          <div style={{height:260,background:`linear-gradient(180deg,#1A1A1A,#000)`,position:"relative",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>
+            <div style={{position:"absolute",top:10,left:10,right:10,display:"flex",justifyContent:"space-between",zIndex:2}}>
+              <span style={{background:"rgba(0,0,0,.7)",backdropFilter:"blur(8px)",color:"#fff",fontSize:9,padding:"4px 10px",borderRadius:20,border:"1px solid rgba(255,255,255,.1)"}}>👁 {v.eye} • {v.l} • {quality} • {v.type} 🔊</span>
+              <span style={{background:`linear-gradient(90deg,${TH.gold},${TH.gold2})`,color:"#000",fontSize:8,padding:"4px 8px",borderRadius:12,fontWeight:900}}>{i===0?"PREMIUM TOP":"ELECTRIFYING"}</span>
             </div>
-            <button style={{marginTop:10,background:"linear-gradient(90deg,#FF0040,#CFA658)",color:"#fff",padding:12,width:"100%",borderRadius:20,border:"none",fontWeight:900,fontSize:12}}>🔴 GO LIVE 12BOX - {quality} {dataSaver?"2G Safe":"HD"} - {effect.toUpperCase()}</button>
-          </div>:<div style={{background:TH.card,padding:10,borderRadius:10,border:"1px solid "+TH.border}}><p style={{fontWeight:800,fontSize:12}}>Audio Rooms - 2G Friendly</p><div style={{display:"flex",gap:6,marginTop:8}}><div style={{flex:1,background:"#111",padding:8,borderRadius:8,textAlign:"center"}}><p>🎧</p><p style={{fontSize:10,fontWeight:800}}>Lagos Talk</p><p style={{fontSize:8}}>42 👁️</p><button style={{marginTop:4,background:TH.gold,color:"#000",padding:"4px 8px",borderRadius:10,border:"none",fontSize:9,fontWeight:800}}>JOIN</button></div><div style={{flex:1,background:"#111",padding:8,borderRadius:8,textAlign:"center"}}><p>🎙️</p><p style={{fontSize:10,fontWeight:800}}>AI Beats</p><p style={{fontSize:8}}>18 👁️</p><button style={{marginTop:4,background:TH.gold,color:"#000",padding:"4px 8px",borderRadius:10,border:"none",fontSize:9,fontWeight:800}}>JOIN</button></div></div></div>}
-        </div>}
-        {tab==="drama" && <div><div style={{display:"flex",gap:6,marginBottom:8}}><span style={{fontSize:11,fontWeight:900,padding:"6px 12px",background:TH.gold,color:"#000",borderRadius:16}}>DRAMA & MOVIES</span><span style={{fontSize:11,fontWeight:800,padding:"6px 12px",background:TH.card,border:"1px solid "+TH.border,borderRadius:16}}>MUSIC PAGE</span></div>{dramaMovies.map((m,i)=><div key={i} style={{background:TH.card,padding:10,borderRadius:10,marginBottom:8,border:"1px solid "+TH.border,display:"flex",gap:10}}><div style={{width:60,height:40,background:"#111",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>🎬</div><div><p style={{fontSize:12,fontWeight:800}}>{m.t}</p><p style={{fontSize:9,color:TH.sub}}>{m.d} • {m.v} 👁️ • {quality} • 2G OK</p></div></div>)}<p style={{fontWeight:900,marginTop:12,fontSize:11}}>Music Page - Audio Streaming</p>{musicList.map((s,i)=><div key={i} style={{background:TH.card,padding:10,borderRadius:10,marginBottom:6,border:"1px solid "+TH.border,display:"flex",justifyContent:"space-between"}}><div><p style={{fontSize:12,fontWeight:800}}>🎵 {s.t}</p><p style={{fontSize:9,color:TH.sub}}>{s.a} • {s.v} 👁️</p></div><button style={{background:TH.gold,color:"#000",padding:"4px 10px",borderRadius:12,border:"none",fontSize:10,fontWeight:800}}>▶️ Play {dataSaver?"Audio":""}</button></div>)} </div>}
-        {tab==="inbox" && <div><div style={{display:"flex",gap:6,marginBottom:8}}><button onClick={()=>setInboxTab("msgs")} style={{flex:1,padding:7,borderRadius:16,border:"1px solid "+TH.border,background:inboxTab==="msgs"?TH.gold:"#000",color:inboxTab==="msgs"?"#000":TH.text,fontWeight:800,fontSize:11}}>Private Messages 3</button><button onClick={()=>setInboxTab("notifs")} style={{flex:1,padding:7,borderRadius:16,border:"1px solid "+TH.border,background:inboxTab==="notifs"?TH.gold:"#000",color:inboxTab==="notifs"?"#000":TH.text,fontWeight:800,fontSize:11}}>Notifications</button></div>{inboxTab==="msgs"?<div><div style={{background:TH.card,borderRadius:10,border:"1px solid "+TH.border}}>{[{n:"heritage_box",m:"Invite me to Box 2? 👁️",u:2},{n:"lagos_queen",m:"Audio room 🎧",u:1},{n:"drama_king",m:"New movie 🎬",u:0}].map(c=><div key={c.n} style={{padding:10,borderBottom:"1px solid "+TH.border,display:"flex",justifyContent:"space-between"}}><div><p style={{fontSize:11,fontWeight:800}}>{c.n}</p><p style={{fontSize:10,color:TH.sub}}>{c.m}</p></div>{c.u>0 && <span style={{background:TH.gold,color:"#000",fontSize:9,padding:"2px 6px",borderRadius:8,fontWeight:900}}>{c.u}</span>}</div>)}</div><div style={{background:TH.card,padding:8,borderRadius:10,marginTop:8,border:"1px solid "+TH.border}}>{chats.map((m,i)=><div key={i} style={{padding:"4px 0",borderBottom:"1px solid "+TH.border}}><span style={{fontSize:10,fontWeight:800,color:TH.gold}}>@{m.from}: </span><span style={{fontSize:10}}>{m.txt}</span></div>)}</div><div style={{display:"flex",gap:5,marginTop:8}}><input value={chatMsg} onChange={e=>setChatMsg(e.target.value)} placeholder="Message..." style={{flex:1,border:"1px solid "+TH.border,padding:8,borderRadius:16,background:TH.bg,color:TH.text,fontSize:12}}/><button onClick={()=>{ if(chatMsg.trim()){ setChats([...chats,{from:user?user.username:"you",txt:chatMsg}]); setChatMsg(""); } }} style={{background:TH.gold,color:"#000",padding:"8px 12px",borderRadius:16,border:"none",fontWeight:900,fontSize:11}}>Send</button></div></div>:<div style={{background:TH.card,borderRadius:10,border:"1px solid "+TH.border}}>{[{t:"Box Request",d:"chill_girl wants to join Box 2 👁️"},{t:"Crown",d:"lagos_queen 👑 +1"},{t:"Drama",d:"New episode Lagos Love 🎬"}].map((n,i)=><div key={i} style={{padding:10,borderBottom:"1px solid "+TH.border}}><p style={{fontSize:11,fontWeight:800}}>{n.t}</p><p style={{fontSize:10,color:TH.sub}}>{n.d}</p></div>)}</div>}</div>}
-        {tab==="wallet" && <div><div style={{background:"linear-gradient(135deg,#CFA658,#8C6A2F)",padding:12,borderRadius:10,color:"#000"}}><p style={{fontSize:9,fontWeight:800}}>VAULT V10.1 HIGHEST - NO CRASH</p><p style={{fontSize:22,fontWeight:900}}>N{wallet.toLocaleString()}</p><p style={{fontSize:10,fontWeight:700}}>Creator N{creatorBal} 80% App N{appBal} 20% • 2G Saved 12MB</p></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:8}}>{[{n:"Rose 100",p:100,i:"🌹"},{n:"Gold Crown",p:500,i:"👑"},{n:"Diamond",p:1000,i:"💎"},{n:"Lion",p:5000,i:"🦁"}].map(g=><div key={g.n} style={{background:TH.card,padding:8,borderRadius:8,border:"1px solid "+TH.gold,textAlign:"center"}}><p style={{fontSize:16}}>{g.i}</p><p style={{fontSize:10,fontWeight:800}}>{g.n}</p><p style={{fontSize:9,color:TH.gold}}>N{g.p} PREMIUM</p><button onClick={crown} style={{marginTop:3,background:TH.gold,color:"#000",padding:"3px 8px",borderRadius:10,border:"none",fontSize:8,fontWeight:900}}>SEND</button></div>)}</div></div>}
-        {tab==="profile" && <div style={{background:TH.card,padding:12,borderRadius:10,border:"1px solid "+TH.border,textAlign:"center"}}>{isGuest?<div><div style={{width:50,height:50,borderRadius:25,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",margin:"0 auto"}}>C</div><p style={{fontWeight:900,marginTop:6,fontSize:12}}>Guest V10.1 Highest</p><button onClick={()=>setShowLogin(true)} style={{marginTop:8,background:TH.gold,color:"#000",padding:8,width:"100%",borderRadius:16,border:"none",fontWeight:900,fontSize:11}}>Sign Up - No Crash</button></div>:<div><div style={{width:50,height:50,borderRadius:25,background:TH.gold,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",margin:"0 auto"}}>{user.username[0].toUpperCase()}</div><p style={{fontWeight:900,marginTop:6,fontSize:12}}>@{user.username}</p><p style={{fontSize:10,color:TH.sub}}>{crowns} Crowns • {quality} • V10.1 Highest</p></div>}</div>}
+            <div style={{width:64,height:64,borderRadius:16,background:`linear-gradient(135deg,${TH.gold},${TH.gold2})`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:22,color:"#000",boxShadow:"0 0 30px "+TH.gold+"50"}}>{v.u[0].toUpperCase()}</div>
+            <p style={{color:"#fff",fontWeight:900,marginTop:10,fontSize:14}}>@{v.u}</p>
+            <p style={{color:"#bbb",fontSize:11,marginTop:4,textAlign:"center",maxWidth:300,lineHeight:"14px"}}>{v.c}</p>
+            <div style={{position:"absolute",bottom:12,right:12,display:"flex",flexDirection:"column",gap:10}}>
+              <button onClick={crown} style={{width:40,height:40,borderRadius:20,background:`linear-gradient(135deg,${TH.gold},${TH.gold2})`,border:"none",fontWeight:900,color:"#000",boxShadow:"0 0 15px "+TH.gold+"60"}}>👑</button>
+              <button style={{width:40,height:40,borderRadius:20,background:"rgba(255,255,255,.12)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,.15)",color:"#fff"}}>💬</button>
+              <button style={{width:40,height:40,borderRadius:20,background:"rgba(255,255,255,.12)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,.15)",color:"#fff"}}>🌹</button>
+            </div>
+            <div style={{position:"absolute",bottom:12,left:12,background:"rgba(0,0,0,.6)",backdropFilter:"blur(8px)",padding:"6px 10px",borderRadius:12,border:"1px solid rgba(255,255,255,.1)"}}>
+              <p style={{fontSize:8,color:TH.gold,fontWeight:900}}>🎵 AI + Audio • 2G OK</p>
+              <div style={{display:"flex",gap:2,marginTop:4}}>{[1,2,3,4,5].map(n=><div key={n} style={{width:2,height:8,background:TH.gold,borderRadius:1,opacity:.3+n*.15}}></div>)}</div>
+            </div>
+          </div>
+          <div style={{padding:12,display:"flex",justifyContent:"space-between",alignItems:"center",background:TH.card2}}>
+            <div><p style={{fontSize:12,fontWeight:800}}>@{v.u} • {v.cr} Crowns • Vault N10M</p><p style={{fontSize:10,color:TH.sub,marginTop:2}}>Creator N16 80% • App N4 20% • Rose 100 Premium • Weather + FX Active</p></div>
+            <button onClick={crown} style={{background:`linear-gradient(90deg,${TH.gold},${TH.gold2})`,color:"#000",padding:"8px 14px",borderRadius:20,border:"none",fontWeight:900,fontSize:11,boxShadow:"0 0 15px "+TH.gold+"40"}}>👑 Crown N20</button>
+          </div>
+        </div>)}
+        <div style={{background:`linear-gradient(135deg,${TH.card},${TH.card2})`,border:"1px solid "+TH.gold+"40",borderRadius:16,padding:14,marginTop:8}}>
+          <p style={{fontWeight:900,fontSize:12}}>V13 PREMIUM Features • 1,000,000x Upgraded</p>
+          <p style={{fontSize:10,color:TH.sub,marginTop:6,lineHeight:"15px"}}>✅ Netflix Premium Pop-Up Electrifying with Gold Glow • ✅ Weather Forecast Lagos/London/NY/Dubai for Diaspora • ✅ Currency Exchange USD/GBP/EUR/CAD to NGN Live • ✅ 12BOX Video Live Creator+11 Guests Eye • ✅ AI Effects Camera/Sound/AI • ✅ Audio Streaming 2G 144p • ✅ Drama Movies + Music Page • ✅ Inbox Private + Notifications • ✅ Premium Gifts • ✅ Logo Pop • Won't Crash Highest Version • ACTIVE</p>
+        </div>
       </main>
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,height:72,background:TH.nav,borderTop:"1px solid "+TH.border,display:"flex",justifyContent:"space-around",alignItems:"center",zIndex:40,overflowX:"auto"}}>
-        {[{k:"fyp",l:"FYP",i:"◎"},{k:"live",l:"LIVE 12BOX",i:"+"},{k:"drama",l:"DRAMA",i:"🎬"},{k:"inbox",l:"INBOX",i:"💬"},{k:"wallet",l:"WALLET",i:"₦"},{k:"profile",l:"PROFILE",i:"◐"}].map(t=>{ const a=tab===t.k; return(<button key={t.k} onClick={()=>setTab(t.k)} style={{background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",color:a?TH.gold:TH.sub,minWidth:48}}><div style={{width:t.k==="live"?38:24,height:t.k==="live"?38:24,borderRadius:t.k==="live"?19:12,background:t.k==="live"?TH.gold:"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:t.k==="live"?"#000":a?TH.gold:TH.sub,border:"1px solid "+(a?TH.gold:TH.border),fontSize:t.k==="live"?16:12}}>{t.i}</div><span style={{fontSize:8,fontWeight:a?800:500,marginTop:2}}>{t.l}</span></button>); })}
+      <nav style={{position:"fixed",bottom:0,left:0,right:0,height:70,background:TH.nav,borderTop:"1px solid "+TH.border,display:"flex",justifyContent:"space-around",alignItems:"center",zIndex:40,backdropFilter:"blur(12px)"}}>
+        {[{k:"fyp",l:"FYP",i:"◎"},{k:"live",l:"LIVE 12BOX",i:"+"},{k:"drama",l:"DRAMA",i:"🎬"},{k:"inbox",l:"INBOX",i:"💬"},{k:"wallet",l:"WALLET",i:"₦"},{k:"profile",l:"PROFILE",i:"◐"}].map(t=>{ const a=tab===t.k; return(<button key={t.k} onClick={()=>{ setTab(t.k); setToast(t.l+" - Premium Active"); }} style={{background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",color:a?TH.gold:TH.sub}}><div style={{width:t.k==="live"?42:26,height:t.k==="live"?42:26,borderRadius:t.k==="live"?21:13,background:t.k==="live"?`linear-gradient(135deg,${TH.gold},${TH.gold2})`:"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:t.k==="live"?"#000":a?TH.gold:TH.sub,border:"1px solid "+(a?TH.gold:TH.border),boxShadow:a?`0 0 12px ${TH.gold}60`:"none"}}>{t.i}</div><span style={{fontSize:8,fontWeight:a?800:500,marginTop:2}}>{t.l}</span></button>); })}
       </nav>
     </div>
   );
