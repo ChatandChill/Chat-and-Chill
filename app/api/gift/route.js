@@ -1,4 +1,4 @@
-[4:33 pm, 06/09/2026] @SMALLWORLDMEDI: import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 let wallets = {};
 let transactions = [];
 export async function POST(req){
