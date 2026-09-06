@@ -1,9 +1,6 @@
-// READABLE - ULTRA-SECURE ALL WALLETS - backend/package.json FINAL WORLD NO1
-// REPLACE your old package.json with this - ANTI-COMPETITOR META AI SAFE
 {
   "name": "chatandchill-voice-passport",
-  "version": "1.0.0",
-  "description": "ChatAndChill WORLD NO1 Mature African Gold Diamonds Neon 2G DayNight ULTRA SECURE ALL WALLETS - Beyond TikTok LEVEL 100 - Anti-Competitor Meta AI Safe",
+  "version": "6.7.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -19,10 +16,6 @@
     "cors": "^2.8.5",
     "socket.io": "^4.7.4",
     "socket.io-client": "^4.7.4",
-    "helmet": "^7.1.0",
-    "express-rate-limit": "^7.1.5",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3",
-    "crypto-js": "^4.2.0"
+    "mongoose": "^8.4.0"
   }
 }
