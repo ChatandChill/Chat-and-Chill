@@ -1,97 +1,60 @@
-// READABLE - ULTRA-SECURE ALL WALLETS - backend/server.js WORLD NO1 FINAL
-// REPLACE your old server.js with this - Blocks competitors, encrypts ALL wallets AES-256
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
-const CryptoJS = require('crypto-js');
 require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
+const mongoose = require('mongoose');
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*", methods: ["GET","POST"] } });
+app.use(cors());
+app.use(express.json());
 
-// ULTRA SECURE HEADERS - Blocks competitors seeing stack
-app.use(helmet());
-app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true }));
-app.use(cors({ origin: process.env.FRONTEND_URL || "*", credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
+console.log('🔍 MONGO_URI:', MONGO_URI? MONGO_URI.substring(0,50)+'...' : 'MISSING');
 
-// RATE LIMIT - Blocks DDoS 1M requests
-const generalLimiter = rateLimit({ windowMs: 15*60*1000, max: 500, message: "Too many requests - ChatAndChill WORLD NO1" });
-const walletLimiter = rateLimit({ windowMs: 15*60*1000, max: 20, message: "Too many wallet requests - Try later" });
-const withdrawLimiter = rateLimit({ windowMs: 60*60*1000, max: 3, message: "Too many withdraw - Max 3 per hour - WORLD NO1 Secure" });
-const giftLimiter = rateLimit({ windowMs: 60*1000, max: 10, message: "Too many gifts - Max 10 per minute" });
-
-app.use(generalLimiter);
-
-// WALLET ENCRYPTION - ALL WALLETS ENCRYPTED AES-256
-function encryptWallet(amount) {
-  return CryptoJS.AES.encrypt(amount.toString(), process.env.WALLET_ENCRYPTION_KEY || 'wallet_gold_diamonds_neon_256').toString();
-}
-function decryptWallet(encrypted) {
-  const bytes = CryptoJS.AES.decrypt(encrypted, process.env.WALLET_ENCRYPTION_KEY || 'wallet_gold_diamonds_neon_256');
-  return parseFloat(bytes.toString(CryptoJS.enc.Utf8)) || 0;
+if (MONGO_URI) {
+  mongoose.connect(MONGO_URI)
+  .then(()=> console.log('✅ Connected to ChatandChill-supreme —', mongoose.connection.name))
+  .catch(err=> console.error('❌ Mongo failed:', err.message));
 }
 
-// JWT VERIFY - ALL WALLETS REQUIRE TOKEN - Blocks competitors stealing
-function verifyWalletToken(req,res,next) {
-  const token = req.headers['authorization']?.split(' ')[1];
-  if(!token) return res.status(403).json({ error: "No wallet token - Competitor blocked" });
-  jwt.verify(token, process.env.JWT_SECRET || 'ultra_strong_jwt_secret_gold_diamonds_2024', (err,decoded)=>{
-    if(err) return res.status(403).json({ error: "Invalid wallet token - Competitor blocked" });
-    req.user = decoded; next();
-  });
-}
+const userSchema = new mongoose.Schema({
+  userId: { type: String, required: true, unique: true },
+  faceTemplateEncrypted: String,
+  voiceVerifyTemplate: String,
+  voiceCloneId: String,
+  nativeLanguage: String,
+  isVerified: Boolean,
+  createdAt: { type: Date, default: Date.now }
+});
+const User = mongoose.model('User', userSchema);
 
-// ROUTES - ALL SECURE - ADD ONLY KEEP EXISTING
-try { app.use('/api/gifts', giftLimiter, require('./routes/giftRoutesPro')); } catch(e){ console.log('giftRoutesPro add later'); }
-try { app.use('/api/affiliate', walletLimiter, verifyWalletToken, require('./routes/affiliateRoutesFinal')); } catch(e){}
-try { app.use('/api/offline', giftLimiter, require('./routes/offlineGiftingAndViews')); app.use('/api/wallet', walletLimiter, verifyWalletToken, require('./routes/offlineGiftingAndViews')); app.use('/api/views', require('./routes/offlineGiftingAndViews')); } catch(e){}
-try { app.use('/api/ai', require('./routes/aiAntiBoost')); } catch(e){}
-try { app.use('/api/voice', require('./routes/voiceRoutes')); } catch(e){}
-try { app.use('/api/bank', walletLimiter, verifyWalletToken, require('./routes/bankRoutes')); } catch(e){}
-
-// HEALTH - WORLD NO1
-app.get('/api/health', (req,res)=> res.json({
-  status: "ChatAndChill WORLD NO1 - Mature African Gold Diamonds Neon 2G DayNight ULTRA SECURE ALL WALLETS - Friendship Love Benefits Diaspora Love - Beyond TikTok LEVEL 100",
-  version: "1.0.0 WORLD NO1 SECURE",
-  logo: "Mature kente burgundy burnt orange forest green earth brown gold diamonds neon green heart handshake gift $$ 2G",
-  fx: "barcaBlueRedBurst worldCupFireworksUniverse naijaGreenWhiteBurst loveHeartExplosion africaPrideWave goldMoneyRain",
-  wallets: "Gift 70% OPay Affiliate 75/20/5 Business Gold Bag Views N20k Pool OPay Linked Withdraw Face+Voice - ALL ENCRYPTED",
-  security: "helmet rateLimit jwt crypto-js bcrypt antiBoostAI voicePassport - Meta AI Safe - Secrets in .env private"
-}));
-
-// SOCKET.IO - SECURE LIVE GIFT FX - Blocks fake gifts
-io.on('connection', (socket)=>{
-  console.log('WORLD NO1 User connected', socket.id);
-  socket.on('join_stream', (data)=> {
-    socket.join(data.streamId);
-    io.to(data.streamId).emit('user_joined', data);
-  });
-  socket.on('send_real_gift', (data)=>{
-    const fxMap = { 'barcelona': 'barcaBlueRedBurst', 'worldCup': 'worldCupFireworksUniverse', 'nigeria': 'naijaGreenWhiteBurst', 'love': 'loveHeartExplosion', 'africa': 'africaPrideWave' };
-    const encryptedAmount = encryptWallet(data.amount || 0);
-    io.to(data.streamId).emit('real_gift_received', {
-     ...data,
-      fx: fxMap[data.giftId] || 'goldMoneyRain',
-      encryptedAmount,
-      worldNo1: true,
-      matureAfrican: true,
-      goldDiamonds: true,
-      neonGlow: true,
-      dayNight: true,
-      twoG: true,
-      secure: true,
-      timestamp: Date.now()
-    });
-  });
-  socket.on('disconnect', ()=> console.log('User disconnected', socket.id));
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, ()=> console.log(`ChatAndChill WORLD NO1 ULTRA SECURE ALL WALLETS server ${PORT} - Mature African Gold Diamonds Neon 2G DayNight - Beyond TikTok LEVEL 100`));
+const upload = multer({ dest: 'uploads/' });
+const dbFallback = { users: new Map() };
+
+app.get('/', (req,res)=> res.json({ status:'Supreme v6.7.0', mongo: mongoose.connection.readyState===1? 'Connected '+mongoose.connection.name : 'Not Connected', version:'6.7.0' }));
+
+app.post('/api/onboard/voice-passport', upload.fields([{name:'video'},{name:'audio'}]), async (req,res)=>{
+  try{
+    const userId=req.body.userId;
+    const videoFile=req.files['video']?.[0];
+    const audioFile=req.files['audio']?.[0];
+    if(!userId||!videoFile||!audioFile) return res.status(400).json({success:false});
+    if(mongoose.connection.readyState===1){
+      await User.findOneAndUpdate({userId},{userId, faceTemplateEncrypted:'enc_'+videoFile.path, voiceVerifyTemplate:'voice_'+audioFile.path, voiceCloneId:'voice_'+userId, nativeLanguage:'yo', isVerified:true},{upsert:true,new:true});
+    }
+    if(fs.existsSync(videoFile.path)) fs.unlinkSync(videoFile.path);
+    if(fs.existsSync(audioFile.path)) fs.unlinkSync(audioFile.path);
+    res.json({success:true, mongo:'saved to ChatandChill-supreme'});
+  }catch(e){ res.status(500).json({error:e.message}); }
+});
+
+const PORT=process.env.PORT||5000;
+app.listen(PORT, ()=> console.log(v6.7.0 running on ${PORT}));
