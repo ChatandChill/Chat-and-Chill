@@ -19,7 +19,7 @@ export async function POST(req){
   wallets[senderId] = senderBal - grossKobo;
   wallets[receiverId] = (wallets[receiverId] || 0) + creatorShare;
   const txn = { id: 'txn_' + Date.now(), from: senderId, to: receiverId, giftName: gift...
-[4:35 pm, 06/09/2026] @SMALLWORLDMEDI: import { NextResponse } from 'next/server';
+ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 
 // Connect Mongo - Supreme v6.7.0
