@@ -1,34 +1,53 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js"
 
 export async function POST(req) {
   try {
-    const { reference, user_id } = await req.json()
-    const secret = process.env.PAYSTACK_SECRET_KEY
-    const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: { Authorization: `Bearer ${secret}` }
+    const { reference, amount, user_id } = await req.json()
+
+    // 1. Verify with Paystack
+    const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+      }
     })
-    const verifyJson = await verifyRes.json()
-    if (!verifyJson.status || verifyJson.data.status !== 'success') {
-      return Response.json({ success: false, error: 'Paystack failed' }, { status: 400 })
+    const paystackData = await paystackRes.json()
+    
+    if (paystackData.data.status !== "success") {
+      return Response.json({ success: false, error: "Paystack not success" })
     }
-    const amountPaid = verifyJson.data.amount / 100
+
+    // 2. Credit wallet
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      process.env.SUPABASE_SERVICE_ROLE_KEY
     )
-    const finalUserId = user_id || 'user_123'
-    const { data: existing } = await supabase.from('wallets').select('balance').eq('user_id', finalUserId).single()
-    const newBalance = (existing?.balance || 0) + amountPaid
+
+    // get or create wallet
+    const { data: wallet } = await supabase.from("wallets").select("*").eq("user_id", user_id).single()
     
-    // Only update wallets - no transactions to avoid fail
-    const { error } = await supabase.from('wallets').upsert(
-      { user_id: finalUserId, balance: newBalance },
-      { onConflict: 'user_id' }
-    )
-    if (error) return Response.json({ success: false, error: 'DB update failed: ' + error.message }, { status: 500 })
-    
-    return Response.json({ success: true, balance: newBalance, amountPaid, oldBalance: existing?.balance || 0 })
-  } catch (err) {
-    return Response.json({ success: false, error: err.message }, { status: 500 })
+    const bonus = amount >= 5000 ? 800 : amount >= 3000 ? 300 : 0
+    const total = amount + bonus
+
+    if (wallet) {
+      await supabase.from("wallets").update({ 
+        balance: wallet.balance + total 
+      }).eq("user_id", user_id)
+    } else {
+      await supabase.from("wallets").insert({ user_id, balance: total })
+    }
+
+    await supabase.from("transactions").insert({
+      user_id,
+      reference,
+      amount,
+      bonus,
+      status: "success"
+    })
+
+    return Response.json({ success: true, balance: total })
+
+  } catch (e) {
+    console.error(e)
+    return Response.json({ success: false, error: e.message }, { status: 500 })
   }
 }
