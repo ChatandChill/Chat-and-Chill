@@ -1,8 +1,15 @@
+import AppLogoSystem from './components/AppLogoSystem';
+import BadgeSystemPro from './components/BadgeSystemPro';
+import LiveGiftSystemPro from './components/LiveGiftSystemPro';
+import WorldNo1System from './components/WorldNo1System';
+
 export default function Home() {
   return (
-    <main style={{padding:50, background:'#000', color:'#fff', minHeight:'100vh'}}>
-      <h1>Chat-and-Chill is Live</h1>
-      <p>Build successful!</p>
+    <main style={{background:'#0a0a0a', color:'white', minHeight:'100vh', padding:'20px', display:'flex', flexDirection:'column', gap:'20px', alignItems:'center'}}>
+      <AppLogoSystem />
+      <WorldNo1System />
+      <LiveGiftSystemPro />
+      <BadgeSystemPro />
     </main>
   );
 }
