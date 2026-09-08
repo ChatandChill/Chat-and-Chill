@@ -2,39 +2,92 @@
 import { useState, useEffect } from 'react'
 
 export default function FundWalletSystemPro() {
-  const [ready, setReady] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+
   useEffect(() => {
-    const s = document.createElement('script')
-    s.src = 'https://js.paystack.co/v1/inline.js'
-    s.onload = () => setReady(true)
-    document.body.appendChild(s)
+    // Load Paystack safely - won't crash if blocked
+    if (typeof window !== 'undefined' && !window.PaystackPop) {
+      const s = document.createElement('script')
+      s.src = 'https://js.paystack.co/v1/inline.js'
+      s.async = true
+      s.onload = () => setLoaded(true)
+      s.onerror = () => setLoaded(true) // still enable button even if script fails
+      document.body.appendChild(s)
+    } else {
+      setLoaded(true)
+    }
   }, [])
 
   const fund = () => {
-    const key = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-    if(!key) return alert('Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in Vercel!')
-    if(!window.PaystackPop) return alert('Paystack loading...')
-    
-    const h = window.PaystackPop.setup({
-      key, email: 'test@chatandchill.com', amount: 100000,
-      ref: 'fund_'+Date.now(),
-      callback: async (res) => {
-        const r = await fetch('/api/fund', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({reference: res.reference, user_id: 'user_123'})
-        })
-        const d = await r.json()
-        alert(d.success ? 'SUCCESS! Balance: '+d.balance : 'Error: '+d.error)
-        location.reload()
+    try {
+      const key = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
+      if (!key) {
+        alert('❌ Missing NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in Vercel Env! Add it and REDEPLOY.')
+        return
       }
-    })
-    h.openIframe()
+      if (typeof window === 'undefined' || !window.PaystackPop) {
+        alert('Paystack is loading... wait 3 secs and try again. If still fails, disable adblock.')
+        return
+      }
+
+      // Paystack setup
+      const handler = window.PaystackPop.setup({
+        key: key,
+        email: 'user@chatandchill.com', // you can change to real user email
+        amount: 100000, // 1000 Naira in kobo
+        currency: 'NGN',
+        ref: 'CHAT_' + Date.now(),
+        onClose: () => {
+          alert('Payment window closed')
+        },
+        callback: async function(response) {
+          alert('Payment success! Verifying... ' + response.reference)
+          try {
+            const res = await fetch('/api/fund', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                reference: response.reference, 
+                user_id: 'user_123',
+                amount: 1000 
+              }),
+            })
+            const data = await res.json()
+            if (data.success) {
+              alert('✅ SUCCESS! New Balance: ₦' + data.balance)
+              window.location.reload()
+            } else {
+              alert('❌ Verify failed: ' + (data.error || 'Unknown error'))
+            }
+          } catch (e) {
+            alert('❌ Network error verifying: ' + e.message)
+          }
+        }
+      })
+      handler.openIframe()
+    } catch (err) {
+      alert('Error: ' + err.message)
+      console.error(err)
+    }
   }
 
   return (
-    <div style={{textAlign:'center', margin:'30px'}}>
-      <button onClick={fund} disabled={!ready} style={{background: ready?'#00c853':'gray', color:'white', padding:'14px 28px', borderRadius:'12px', fontWeight:'bold', border:'none'}}>
-        {ready ? '💳 Fund Wallet ₦1000' : 'Loading...'}
+    <div style={{ display: 'flex', justifyContent: 'center', margin: '30px 0', position: 'relative', zIndex: 99999 }}>
+      <button
+        onClick={fund}
+        style={{
+          backgroundColor: '#00c853',
+          color: 'white',
+          padding: '16px 32px',
+          borderRadius: '12px',
+          fontWeight: 'bold',
+          fontSize: '16px',
+          border: 'none',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+        }}
+      >
+        💳 Fund Wallet ₦1000 {loaded ? '' : '(Loading...)'}
       </button>
     </div>
   )
