@@ -1,93 +1,88 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 
 export default function FundWalletSystemPro() {
-  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    // Load Paystack safely - won't crash if blocked
     if (typeof window !== 'undefined' && !window.PaystackPop) {
-      const s = document.createElement('script')
-      s.src = 'https://js.paystack.co/v1/inline.js'
-      s.async = true
-      s.onload = () => setLoaded(true)
-      s.onerror = () => setLoaded(true) // still enable button even if script fails
-      document.body.appendChild(s)
-    } else {
-      setLoaded(true)
+      const script = document.createElement('script')
+      script.src = 'https://js.paystack.co/v1/inline.js'
+      script.async = true
+      document.body.appendChild(script)
     }
   }, [])
 
-  const fund = () => {
-    try {
-      const key = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-      if (!key) {
-        alert('❌ Missing NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in Vercel Env! Add it and REDEPLOY.')
-        return
-      }
-      if (typeof window === 'undefined' || !window.PaystackPop) {
-        alert('Paystack is loading... wait 3 secs and try again. If still fails, disable adblock.')
-        return
-      }
+  const handleFund = () => {
+    const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
 
-      // Paystack setup
-      const handler = window.PaystackPop.setup({
-        key: key,
-        email: 'user@chatandchill.com', // you can change to real user email
-        amount: 100000, // 1000 Naira in kobo
-        currency: 'NGN',
-        ref: 'CHAT_' + Date.now(),
-        onClose: () => {
-          alert('Payment window closed')
-        },
-        callback: async function(response) {
-          alert('Payment success! Verifying... ' + response.reference)
-          try {
-            const res = await fetch('/api/fund', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                reference: response.reference, 
-                user_id: 'user_123',
-                amount: 1000 
-              }),
-            })
-            const data = await res.json()
-            if (data.success) {
-              alert('✅ SUCCESS! New Balance: ₦' + data.balance)
-              window.location.reload()
-            } else {
-              alert('❌ Verify failed: ' + (data.error || 'Unknown error'))
-            }
-          } catch (e) {
-            alert('❌ Network error verifying: ' + e.message)
-          }
-        }
-      })
-      handler.openIframe()
-    } catch (err) {
-      alert('Error: ' + err.message)
-      console.error(err)
+    if (!publicKey) {
+      alert('❌ Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in Vercel and REDEPLOY')
+      return
     }
+
+    if (!window.PaystackPop) {
+      alert('Paystack still loading... wait 2 seconds. Disable adblock if blocked.')
+      return
+    }
+
+    const paystack = window.PaystackPop.setup({
+      key: publicKey,
+      email: 'user@chatandchill.com',
+      amount: 100000, // ₦1000 = 100000 kobo
+      currency: 'NGN',
+      ref: 'FUND_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      onClose: function() {
+        console.log('User closed paystack')
+      },
+      callback: function(response) {
+        // THIS IS THE FIX - callback must be normal function, not async
+        console.log('Paystack callback:', response)
+        alert('Payment OK! Reference: ' + response.reference + ' - Verifying...')
+
+        fetch('/api/fund', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reference: response.reference,
+            user_id: 'user_123'
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          console.log('Verify response:', data)
+          if (data.success) {
+            alert('✅ VERIFIED! Paid: ₦' + data.amountPaid + '\nOld: ₦' + data.oldBalance + '\nNew Balance: ₦' + data.balance)
+            window.location.reload()
+          } else {
+            alert('❌ Verify failed: ' + data.error)
+          }
+        })
+        .catch(err => {
+          alert('❌ Network error: ' + err.message)
+        })
+      }
+    })
+
+    paystack.openIframe()
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', margin: '30px 0', position: 'relative', zIndex: 99999 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px', position: 'relative', zIndex: 99999 }}>
       <button
-        onClick={fund}
+        onClick={handleFund}
         style={{
-          backgroundColor: '#00c853',
+          background: '#00C853',
           color: 'white',
-          padding: '16px 32px',
-          borderRadius: '12px',
-          fontWeight: 'bold',
+          padding: '16px 36px',
+          borderRadius: '14px',
+          fontWeight: '900',
           fontSize: '16px',
           border: 'none',
           cursor: 'pointer',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+          boxShadow: '0 8px 20px rgba(0,200,83,0.4)'
         }}
       >
-        💳 Fund Wallet ₦1000 {loaded ? '' : '(Loading...)'}
+        💳 Fund Wallet ₦1000
       </button>
     </div>
   )
