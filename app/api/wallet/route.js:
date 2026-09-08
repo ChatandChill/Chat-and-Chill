@@ -1,15 +1,11 @@
 import { supabaseAnon } from "../../../lib/supabaseClient"
-
 export async function GET(req){
   const { searchParams } = new URL(req.url)
   const user_id = searchParams.get("user_id") || "user_123"
-  
   let { data } = await supabaseAnon.from("wallets").select("balance").eq("user_id", user_id).maybeSingle()
-  
   if(!data){
-    const { data: inserted } = await supabaseAnon.from("wallets").upsert({ user_id, balance: 10000 }).select().single()
-    data = inserted || { balance: 10000 }
+    const { data: ins } = await supabaseAnon.from("wallets").upsert({ user_id, balance: 10000 }).select().single()
+    data = ins || { balance: 10000 }
   }
-  
   return Response.json({ balance: data.balance })
 }
