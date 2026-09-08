@@ -1,9 +1,8 @@
-import { NextResponse } from 'next/server';
-export async function POST(req){
-  const body = await req.json();
-  const userId = body.userId;
-  return NextResponse.json({ userId: userId, balance_naira: 500000, type: 'Benefit Not Bank' });
-}
-export async function GET(){
-  return NextResponse.json({ ok: true });
+import { createClient } from "@supabase/supabase-js"
+export async function GET(req){
+  const {searchParams}=new URL(req.url)
+  const user_id=searchParams.get("user_id")
+  const supabase=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  const {data}=await supabase.from("wallets").select("balance").eq("user_id",user_id).maybeSingle()
+  return Response.json({balance:data?.balance||0})
 }
