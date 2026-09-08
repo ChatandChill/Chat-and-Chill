@@ -3,58 +3,67 @@ import { useState, useEffect } from "react"
 
 export default function Page(){
   const [balance, setBalance] = useState(0)
-  const [history, setHistory] = useState([])
+  const [txs, setTxs] = useState([])
   const [msg, setMsg] = useState("")
 
   useEffect(()=>{
-    const params = new URLSearchParams(window.location.search)
-    const funded = params.get("funded")
-    if(funded){ setMsg(`✅ ₦${funded} added successfully!`); window.history.replaceState({}, "", "/") }
-
-    loadData()
+    const p = new URLSearchParams(window.location.search)
+    if(p.get("funded")){ setMsg(`✅ ₦${p.get("funded")} added!`); window.history.replaceState({}, "", "/") }
+    load()
   },[])
 
-  const loadData = async () => {
-    const resBal = await fetch(`https://kngpwddyquxrcfydlxkg.supabase.co/rest/v1/wallets?select=balance&user_id=eq.user_123`, {
-      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` }
-    })
-    const dataBal = await resBal.json()
-    if(dataBal[0]) setBalance(dataBal[0].balance)
-
-    const resHist = await fetch(`https://kngpwddyquxrcfydlxkg.supabase.co/rest/v1/transactions?user_id=eq.user_123&order=created_at.desc&limit=10`, {
-      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` }
-    })
-    const dataHist = await resHist.json()
-    setHistory(dataHist || [])
+  const load = async () => {
+    const res = await fetch("/api/wallet?user_id=user_123")
+    const data = await res.json()
+    setBalance(data.balance)
+    setTxs(data.transactions)
   }
 
-  const pay = async (amount) => {
-    const res = await fetch("/api/fund", {
-      method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({amount, email:"user@chatandchill.com", user_id:"user_123"})
-    })
-    const data = await res.json()
-    if(data.authorization_url) window.location.href = data.authorization_url
+  const pay = async (a) => {
+    const res = await fetch("/api/fund", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({amount:a, email:"user@chatandchill.com", user_id:"user_123"}) })
+    const d = await res.json()
+    if(d.authorization_url) window.location.href = d.authorization_url
   }
 
   return (
-    <div style={{background:"black",color:"white",minHeight:"100vh",padding:20,textAlign:"center"}}>
-      {msg && <div style={{background:"#22c55e",color:"black",padding:12,borderRadius:10,marginBottom:15,fontWeight:"bold"}}>{msg}</div>}
-      <p style={{opacity:0.6}}>Wallet Balance</p>
-      <h1 style={{fontSize:55,fontWeight:"bold"}}>₦{balance.toLocaleString()}</h1>
-      <div style={{marginTop:20,display:"grid",gap:10}}>
-        <button onClick={()=>pay(1000)} style={{background:"white",color:"black",padding:16,borderRadius:12,fontWeight:"bold"}}>+ Fund ₦1,000</button>
-        <button onClick={()=>pay(3000)} style={{background:"#FFD700",color:"black",padding:16,borderRadius:12,fontWeight:"bold"}}>+ Fund ₦3,000</button>
-        <button onClick={()=>pay(5000)} style={{background:"#22c55e",color:"black",padding:16,borderRadius:12,fontWeight:"bold"}}>+ Fund ₦5,000</button>
-      </div>
-      <div style={{marginTop:30,textAlign:"left"}}>
-        <h3>Transactions</h3>
-        {history.map(t=>(
-          <div key={t.id} style={{background:"#111",padding:12,borderRadius:10,marginTop:8,display:"flex",justifyContent:"space-between"}}>
-            <span>{t.type} • {new Date(t.created_at).toLocaleDateString()}</span>
-            <span style={{color:"#22c55e"}}>+₦{t.amount}</span>
+    <div style={{background:"#0a0a0a",color:"white",minHeight:"100vh",fontFamily:"Inter,system-ui"}}>
+      <div style={{background:"linear-gradient(135deg,#FFD700 0%,#FF8C00 100%)",padding:"28px 20px 35px",borderRadius:"0 0 32px 32px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{display:"flex",gap:12,alignItems:"center"}}>
+            <div style={{width:48,height:48,background:"black",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>😎</div>
+            <div><div style={{fontSize:12,opacity:0.7,color:"black"}}>Welcome</div><div style={{fontWeight:"800",color:"black"}}>Smallworld</div></div>
           </div>
-        ))}
+          <a href="/admin" style={{background:"black",color:"white",padding:"8px 14px",borderRadius:20,fontSize:12,textDecoration:"none"}}>Admin</a>
+        </div>
+        <div style={{marginTop:22}}>
+          <div style={{fontSize:13,opacity:0.7,color:"black"}}>Wallet Balance</div>
+          <div style={{fontSize:44,fontWeight:"900",color:"black",marginTop:4}}>₦{balance.toLocaleString()}</div>
+        </div>
+        {msg && <div style={{background:"black",color:"#FFD700",padding:"10px",borderRadius:12,marginTop:15,textAlign:"center",fontWeight:"bold"}}>{msg}</div>}
+      </div>
+
+      <div style={{padding:20,marginTop:-10}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+          <button onClick={()=>pay(1000)} style={{background:"#1c1c1c",border:"1px solid #2a2a2a",padding:"16px 8px",borderRadius:18,color:"white"}}><div>💰</div><div style={{fontWeight:"700",marginTop:6}}>₦1k</div></button>
+          <button onClick={()=>pay(3000)} style={{background:"#1c1c1c",border:"1px solid #2a2a2a",padding:"16px 8px",borderRadius:18,color:"white"}}><div>💎</div><div style={{fontWeight:"700",marginTop:6}}>₦3k</div></button>
+          <button onClick={()=>pay(5000)} style={{background:"white",padding:"16px 8px",borderRadius:18,color:"black",fontWeight:"800"}}><div>🔥</div><div style={{marginTop:6}}>₦5k</div></button>
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:18}}>
+          <a href="/gifts" style={{background:"#1c1c1c",padding:16,borderRadius:18,textAlign:"center",textDecoration:"none",color:"white",border:"1px solid #2a2a2a"}}>🎁<div style={{marginTop:6,fontSize:13}}>Gifts</div></a>
+          <a href="/verify" style={{background:"#1c1c1c",padding:16,borderRadius:18,textAlign:"center",textDecoration:"none",color:"white",border:"1px solid #2a2a2a"}}>💬<div style={{marginTop:6,fontSize:13}}>Chat</div></a>
+        </div>
+
+        <div style={{marginTop:28}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3 style={{margin:0}}>Transactions</h3><button onClick={load} style={{background:"transparent",color:"#FFD700",border:"none",fontSize:13}}>Refresh</button></div>
+          {txs.length===0 && <div style={{background:"#1c1c1c",padding:20,borderRadius:16,marginTop:12,textAlign:"center",opacity:0.5,fontSize:13}}>No transactions yet</div>}
+          {txs.map(t=>(
+            <div key={t.id} style={{background:"#1c1c1c",padding:14,borderRadius:14,marginTop:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{display:"flex",gap:10,alignItems:"center"}}><div style={{width:36,height:36,background:"#222",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}>💳</div><div><div style={{fontSize:13,fontWeight:"600"}}>{t.type || "Funding"}</div><div style={{fontSize:11,opacity:0.5}}>{new Date(t.created_at).toLocaleDateString()}</div></div></div>
+              <div style={{color:"#22c55e",fontWeight:"800"}}>+₦{t.amount}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
