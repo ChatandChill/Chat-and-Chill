@@ -1,25 +1,17 @@
+import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-const url = "https://kngpwddyquxrcfydlxkg.supabase.co"
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-const supabase = createClient(url, key)
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 export async function GET(req){
-  try{
-    const { searchParams } = new URL(req.url)
-    const user_id = searchParams.get("user_id") || "user_123"
-    
-    const { data } = await supabase.from("wallets").select("balance").eq("user_id", user_id).maybeSingle()
-    
-    if(data){
-      return Response.json({ balance: data.balance, user_id })
-    }
-    // Auto-create if not found
-    await supabase.from("wallets").insert({ user_id, balance: 10000 })
-    return Response.json({ balance: 10000, user_id })
-    
-  }catch(e){
-    return Response.json({ error: e.message, balance: 0 }, { status: 500 })
-  }
+  const { searchParams } = new URL(req.url)
+  const user_id = searchParams.get("user_id") || "user_123"
+  
+  const { data: wallet } = await supabaseAdmin.from("wallets").select("balance").eq("user_id", user_id).single()
+  const { data: txs } = await supabaseAdmin.from("transactions").select("*").eq("user_id", user_id).order("created_at",{ascending:false}).limit(20)
+  
+  return NextResponse.json({ balance: wallet?.balance || 0, transactions: txs || [] })
 }
