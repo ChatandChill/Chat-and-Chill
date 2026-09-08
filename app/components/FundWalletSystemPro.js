@@ -2,65 +2,68 @@
 import { useEffect, useState } from 'react'
 
 export default function FundWalletSystemPro(){
-  const [loading, setLoading] = useState(false)
+  const [ready, setReady] = useState(false)
 
   useEffect(()=>{
     if(typeof window !== 'undefined' && !window.PaystackPop){
-      const script = document.createElement('script')
-      script.src = 'https://js.paystack.co/v1/inline.js'
-      script.async = true
-      document.body.appendChild(script)
+      const s = document.createElement('script')
+      s.src = 'https://js.paystack.co/v1/inline.js'
+      s.onload = () => setReady(true)
+      document.body.appendChild(s)
+    } else {
+      setReady(true)
     }
   },[])
 
-  const handleFund = (amountNaira) => {
-    const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-    if(!publicKey){
-      alert('❌ Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in Vercel env')
+  const fund = (amount) => {
+    const key = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
+    if(!key){
+      alert("Paystack Public Key missing in Vercel")
       return
     }
     if(!window.PaystackPop){
-      alert('Paystack still loading... wait 2 seconds')
+      alert("Paystack loading... click again in 2 sec")
       return
     }
 
-    const paystack = window.PaystackPop.setup({
-      key: publicKey,
-      email: 'user@chatandchill.com',
-      amount: amountNaira * 100, // Naira to kobo
-      currency: 'NGN',
-      onClose: () => {
-        alert('Payment cancelled')
-      },
-      callback: async function(response){
-        // PAYMENT SUCCESS - Update Supabase wallet
-        setLoading(true)
+    const handler = window.PaystackPop.setup({
+      key: key,
+      email: "user@chatandchill.com",
+      amount: amount * 100,
+      currency: "NGN",
+      callback: async (res) => {
+        console.log("Paystack success:", res)
         try{
-          const res = await fetch('/api/fund', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ 
-              user_id: 'user_123', // change to 'user' if that's your login id
-              amount: amountNaira 
-            })
+          const r = await fetch("/api/fund", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ user_id: "user_123", amount })
           })
-          const data = await res.json()
-          alert(`✅ Funded ₦${amountNaira}! New balance: ₦${data.balance}`)
-          window.location.reload() // refresh to show new balance
-        }catch(e){
-          alert('Funded but wallet update failed: ' + e.message)
+          const j = await r.json()
+          console.log("Fund API:", j)
+          if(j.error){
+            alert("Fund error: " + j.error)
+          } else {
+            alert(`Funded ₦${amount}! Balance now ₦${j.balance}`)
+            location.reload()
+          }
+        }catch(err){
+          console.error(err)
+          alert("Network error: " + err.message)
         }
-        setLoading(false)
+      },
+      onClose: () => {
+        console.log("Closed")
       }
     })
-    paystack.openIframe()
+    handler.openIframe()
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <button onClick={()=>handleFund(1000)} disabled={loading} className="p-3 bg-white rounded-xl">Fund ₦1000</button>
-      <button onClick={()=>handleFund(3000)} disabled={loading} className="p-3 bg-yellow-400 rounded-xl">Fund ₦3000 +₦300 Bonus</button>
-      <button onClick={()=>handleFund(5000)} disabled={loading} className="p-3 bg-green-400 rounded-xl">Fund ₦5000 +₦1000 Bonus</button>
+    <div className="flex gap-2">
+      <button onClick={()=>fund(1000)} className="bg-white px-4 py-2 rounded">Fund 1000</button>
+      <button onClick={()=>fund(3000)} className="bg-yellow-400 px-4 py-2 rounded">Fund 3000</button>
+      {!ready && <span className="text-xs">Loading Paystack...</span>}
     </div>
   )
 }
