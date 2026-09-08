@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 
 export default function Home() {
   const [loading, setLoading] = useState(false)
-  const [balance, setBalance] = useState(0)
+  const USER_ID = "user_123"
   const USER_ID = "test_user"
 
   useEffect(() => {
