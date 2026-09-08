@@ -1,0 +1,12 @@
+✅ CORRECT - Will make balance change:
+app/
+  api/
+    fund/
+      route.js   <-- file name MUST be route.js
+                 <-- folder name MUST be fund
+
+❌ WRONG - Will NOT work (balance not changing):
+app/api/fund.js
+app/api/fund/route.jsx
+app/api/Fund/route.js  (capital F - wrong)
+app/api/fund-wallet/route.js  (you call /api/fund but folder is fund-wallet)
