@@ -1,89 +1,66 @@
 "use client"
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function FundWalletSystemPro() {
+export default function FundWalletSystemPro(){
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !window.PaystackPop) {
+  useEffect(()=>{
+    if(typeof window !== 'undefined' && !window.PaystackPop){
       const script = document.createElement('script')
       script.src = 'https://js.paystack.co/v1/inline.js'
       script.async = true
       document.body.appendChild(script)
     }
-  }, [])
+  },[])
 
-  const handleFund = () => {
+  const handleFund = (amountNaira) => {
     const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-
-    if (!publicKey) {
-      alert('❌ Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in Vercel and REDEPLOY')
+    if(!publicKey){
+      alert('❌ Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in Vercel env')
       return
     }
-
-    if (!window.PaystackPop) {
-      alert('Paystack still loading... wait 2 seconds. Disable adblock if blocked.')
+    if(!window.PaystackPop){
+      alert('Paystack still loading... wait 2 seconds')
       return
     }
 
     const paystack = window.PaystackPop.setup({
       key: publicKey,
       email: 'user@chatandchill.com',
-      amount: 100000, // ₦1000 = 100000 kobo
+      amount: amountNaira * 100, // Naira to kobo
       currency: 'NGN',
-      ref: 'FUND_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-      onClose: function() {
-        console.log('User closed paystack')
+      onClose: () => {
+        alert('Payment cancelled')
       },
-      callback: function(response) {
-        // THIS IS THE FIX - callback must be normal function, not async
-        console.log('Paystack callback:', response)
-        alert('Payment OK! Reference: ' + response.reference + ' - Verifying...')
-
-        fetch('/api/fund', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            reference: response.reference,
-            user_id: 'user_123'
+      callback: async function(response){
+        // PAYMENT SUCCESS - Update Supabase wallet
+        setLoading(true)
+        try{
+          const res = await fetch('/api/fund', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ 
+              user_id: 'user_123', // change to 'user' if that's your login id
+              amount: amountNaira 
+            })
           })
-        })
-        .then(res => res.json())
-        .then(data => {
-          console.log('Verify response:', data)
-          if (data.success) {
-            alert('✅ VERIFIED! Paid: ₦' + data.amountPaid + '\nOld: ₦' + data.oldBalance + '\nNew Balance: ₦' + data.balance)
-            window.location.reload()
-          } else {
-            alert('❌ Verify failed: ' + data.error)
-          }
-        })
-        .catch(err => {
-          alert('❌ Network error: ' + err.message)
-        })
+          const data = await res.json()
+          alert(`✅ Funded ₦${amountNaira}! New balance: ₦${data.balance}`)
+          window.location.reload() // refresh to show new balance
+        }catch(e){
+          alert('Funded but wallet update failed: ' + e.message)
+        }
+        setLoading(false)
       }
     })
-
     paystack.openIframe()
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px', position: 'relative', zIndex: 99999 }}>
-      <button
-        onClick={handleFund}
-        style={{
-          background: '#00C853',
-          color: 'white',
-          padding: '16px 36px',
-          borderRadius: '14px',
-          fontWeight: '900',
-          fontSize: '16px',
-          border: 'none',
-          cursor: 'pointer',
-          boxShadow: '0 8px 20px rgba(0,200,83,0.4)'
-        }}
-      >
-        💳 Fund Wallet ₦1000
-      </button>
+    <div className="flex flex-col gap-3">
+      <button onClick={()=>handleFund(1000)} disabled={loading} className="p-3 bg-white rounded-xl">Fund ₦1000</button>
+      <button onClick={()=>handleFund(3000)} disabled={loading} className="p-3 bg-yellow-400 rounded-xl">Fund ₦3000 +₦300 Bonus</button>
+      <button onClick={()=>handleFund(5000)} disabled={loading} className="p-3 bg-green-400 rounded-xl">Fund ₦5000 +₦1000 Bonus</button>
     </div>
   )
 }
