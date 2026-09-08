@@ -1,27 +1,31 @@
-import { createClient } from "@supabase/supabase-js"
-
-const url = "https://kngpwddyquxrcfydlxkg.supabase.co"
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-const supabase = createClient(url, key)
+import { NextResponse } from "next/server"
 
 export async function POST(req){
   try{
-    const { user_id = "user_123", amount } = await req.json()
-    const amt = Number(amount)
-    
-    if(!amt) return Response.json({ error: "Amount is 0" }, { status: 400 })
+    const { amount, email, user_id } = await req.json()
 
-    const { data: existing } = await supabase.from("wallets").select("balance").eq("user_id", user_id).maybeSingle()
-    const current = existing?.balance || 0
-    const newBal = current + amt
+    const res = await fetch("https://api.paystack.co/transaction/initialize", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: email || "user@chatandchill.com",
+        amount: amount * 100,
+        metadata: { user_id: user_id || "user_123", custom_amount: amount },
+        callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://chat-and-chill-iota.vercel.app"}/verify`
+      })
+    })
 
-    const { data, error } = await supabase.from("wallets").upsert({ user_id, balance: newBal }, { onConflict: 'user_id' }).select().single()
-    
-    if(error) return Response.json({ error: error.message }, { status: 500 })
-    
-    return Response.json({ success: true, balance: data.balance })
+    const data = await res.json()
+    if(!data.status) return NextResponse.json({ error: data.message }, { status: 400 })
+
+    return NextResponse.json({
+      authorization_url: data.data.authorization_url,
+      reference: data.data.reference
+    })
   }catch(e){
-    return Response.json({ error: e.message }, { status: 500 })
+    return NextResponse.json({ error: e.message }, { status: 500 })
   }
 }
