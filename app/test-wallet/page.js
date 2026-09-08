@@ -1,41 +1,38 @@
 "use client"
-import { useEffect, useState } from "react"
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(
-  "https://kngpwddyquxrcfydlxkg.supabase.co",
-  "YOUR_ANON_KEY_HERE" // paste your anon key here
-)
+import { useState, useEffect } from "react"
 
 export default function TestWallet(){
-  const [bal, setBal] = useState("Loading...")
-  const [log, setLog] = useState("")
+  const [bal, setBal] = useState(0)
 
-  const load = async () => {
-    const { data, error } = await supabase.from("wallets").select("*").eq("user_id", "user_123").maybeSingle()
-    setLog(JSON.stringify({ data, error }))
-    if(data) setBal(data.balance)
-    else setBal("Not found")
-  }
+  useEffect(()=>{
+    const saved = localStorage.getItem("my_balance")
+    if(saved) setBal(Number(saved))
+    else {
+      localStorage.setItem("my_balance", "10000")
+      setBal(10000)
+    }
+  },[])
 
-  const add = async () => {
-    const { data: curr } = await supabase.from("wallets").select("balance").eq("user_id", "user_123").maybeSingle()
-    const newBal = (curr?.balance || 0) + 1000
-    const { data, error } = await supabase.from("wallets").upsert({ user_id: "user_123", balance: newBal }, { onConflict: 'user_id' }).select()
-    setLog(JSON.stringify({ data, error }))
+  const add = (amt) => {
+    const newBal = bal + amt
+    localStorage.setItem("my_balance", String(newBal))
     setBal(newBal)
-    alert("Added! New: " + newBal)
+    alert(`Added ₦${amt} — New balance ₦${newBal}`)
   }
-
-  useEffect(()=>{ load() },[])
 
   return (
-    <div style={{ padding: 30, background: 'black', color: 'white', minHeight: '100vh' }}>
-      <h1 style={{ fontSize: 30 }}>TEST WALLET - DIRECT SUPABASE</h1>
-      <h2 style={{ fontSize: 50, marginTop: 20 }}>₦{bal}</h2>
-      <button onClick={load} style={{ background: 'white', color: 'black', padding: 15, marginTop: 20, borderRadius: 10 }}>RELOAD BALANCE</button>
-      <button onClick={add} style={{ background: 'yellow', color: 'black', padding: 15, marginTop: 20, marginLeft: 10, borderRadius: 10 }}>+ ₦1000 DIRECT</button>
-      <p style={{ marginTop: 20, fontSize: 12, wordBreak: 'break-all' }}>{log}</p>
+    <div style={{ padding: 30, background: 'black', color: 'white', minHeight: '100vh', textAlign: 'center' }}>
+      <p>Wallet Balance</p>
+      <h1 style={{ fontSize: 60, fontWeight: 'bold' }}>₦{bal.toLocaleString()}</h1>
+      
+      <div style={{ marginTop: 30, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <button onClick={()=>add(1000)} style={{ background: 'white', color: 'black', padding: 20, borderRadius: 15 }}>+ ₦1,000</button>
+        <button onClick={()=>add(3000)} style={{ background: '#FFD700', color: 'black', padding: 20, borderRadius: 15 }}>+ ₦3,000</button>
+        <button onClick={()=>add(5000)} style={{ background: '#22c55e', color: 'black', padding: 20, borderRadius: 15 }}>+ ₦5,000</button>
+        <button onClick={()=>{localStorage.setItem("my_balance","0"); setBal(0)}} style={{ background: 'red', color: 'white', padding: 20, borderRadius: 15 }}>Reset to 0</button>
+      </div>
+
+      <p style={{ marginTop: 20, fontSize: 12, opacity: 0.6 }}>This uses your phone storage — will show even if Supabase is blocked. Once this works, we copy it to your main wallet page.</p>
     </div>
   )
 }
