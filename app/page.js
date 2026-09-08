@@ -1,11 +1,21 @@
-import FundWalletSystemPro from './components/FundWalletSystemPro'
+const packages = [
+  { amount: 1000, bonus: 0, label: "Starter" },
+  { amount: 3000, bonus: 300, label: "Popular 🔥" },
+  { amount: 5000, bonus: 800, label: "Chill Pro" },
+]
 
-export default function Home() {
-  return (
-    <main>
-      {/* ... your other components */}
-      <FundWalletSystemPro />
-      <h1>Site is back - testing fund</h1>
-    </main>
-  )
-}
+return (
+  <div className="grid grid-cols-3 gap-3">
+    {packages.map(p => (
+      <button 
+        key={p.amount}
+        onClick={() => handleFund(p.amount)}
+        className="bg-white p-4 rounded-xl shadow"
+      >
+        <p className="font-bold">₦{p.amount}</p>
+        {p.bonus > 0 && <p className="text-green-600 text-xs">+₦{p.bonus} bonus</p>}
+        <p className="text-xs text-gray-500">{p.label}</p>
+      </button>
+    ))}
+  </div>
+)
