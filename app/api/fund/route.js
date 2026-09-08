@@ -14,7 +14,7 @@ export async function POST(req){
         email: email || "user@chatandchill.com",
         amount: amount * 100,
         metadata: { user_id: user_id || "user_123", custom_amount: amount },
-        callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://chat-and-chill-iota.vercel.app"}/verify`
+        callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://chat-and-chill-iota.vercel.app"}/api/verify`
       })
     })
 
