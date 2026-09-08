@@ -1,4 +1,4 @@
-import { supabaseAnon } from "@/lib/supabase"
+import { supabaseAnon } from "@/lib/supabaseClient"
 
 export async function GET(req){
   const { searchParams } = new URL(req.url)
