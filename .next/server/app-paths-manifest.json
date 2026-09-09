@@ -1,0 +1,20 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/api/debug/route": "app/api/debug/route.js",
+  "/api/fund/route": "app/api/fund/route.js",
+  "/api/gift/route": "app/api/gift/route.js",
+  "/api/verify/route": "app/api/verify/route.js",
+  "/api/withdraw/route": "app/api/withdraw/route.js",
+  "/chat/[id]/page": "app/chat/[id]/page.js",
+  "/inbox/page": "app/inbox/page.js",
+  "/page": "app/page.js",
+  "/rooms/route": "app/rooms/route.js",
+  "/test-save/page": "app/test-save/page.js",
+  "/test-wallet/page": "app/test-wallet/page.js",
+  "/wallet/route": "app/wallet/route.js",
+  "/api/stories/route": "app/api/stories/route.js",
+  "/api/typing/route": "app/api/typing/route.js",
+  "/api/chat/route": "app/api/chat/route.js",
+  "/api/conversations/route": "app/api/conversations/route.js"
+}
