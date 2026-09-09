@@ -9,7 +9,7 @@ const supabase = createClient(
 export async function GET(req){
   const { searchParams } = new URL(req.url)
   const room_id = searchParams.get("room_id") || "lagos"
-  const { data } = await supabase.from("messages").select("*").eq("room_id", room_id).order("created_at")
+  const { data } = await supabase.from("messages").select("*").eq("room_id", room_id).order("created_at", {ascending:true})
   return NextResponse.json(data || [])
 }
 
@@ -22,7 +22,7 @@ export async function POST(req){
   }).select().single()
   
   if(error){
-    return NextResponse.json({error: error.message, hint: "Run: alter table messages add column if not exists user_id text;"}, {status: 500})
+    return NextResponse.json({error: error.message}, {status:500})
   }
   return NextResponse.json(data)
 }
