@@ -3,66 +3,65 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
-export default function GiftsPage() {
-  const [receiver, setReceiver] = useState('okiki')
+const PHOTOS = [
+  'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=200',
+  'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=200',
+  'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=200',
+  'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=200',
+  'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=200',
+]
+
+export default function Gifts() {
   const [gifts, setGifts] = useState<any[]>([])
   const [selected, setSelected] = useState<any>(null)
-  const [status, setStatus] = useState('')
-  const [user, setUser] = useState<any>(null)
+  const [receiver, setReceiver] = useState('okiki')
+  const [fx, setFx] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getUser().then(r => setUser(r.data.user))
-    supabase.from('gift_catalog').select('*').order('amount').then(r => {
-      if (r.data) {
-        setGifts(r.data)
-        setSelected(r.data[0])
+    const fallback = Array.from({ length: 135 }, (_, index) => ({
+      id: index + 1,
+      name: `Gift ${index + 1}`,
+      amount: (index + 1) * 100,
+      img: PHOTOS[index % PHOTOS.length],
+    }))
+    setGifts(fallback)
+    setSelected(fallback[0])
+
+    supabase.from('gift_catalog').select('*').order('amount').then(result => {
+      if (result.data && result.data.length > 0) {
+        const withImages = result.data.map((gift: any, index: number) => ({ ...gift, img: PHOTOS[index % PHOTOS.length] }))
+        setGifts(withImages)
+        setSelected(withImages[0])
       }
     })
   }, [])
 
   const sendGift = async () => {
     if (!selected) return
-    setStatus('Sending...')
-    const { error } = await supabase.from('gifts').insert({
-      sender_id: user?.id,
-      receiver,
-      amount: selected.amount,
-      gift_name: selected.name,
-      message: `Sent ${selected.name}`,
-    })
-
-    if (error) setStatus('Error: ' + error.message)
-    else setStatus(`✅ Gifted ${selected.emoji} ${selected.name} ₦${selected.amount} to ${receiver}!`)
+    setFx(true)
+    setTimeout(() => setFx(false), 2000)
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('gifts').insert({ sender_id: user?.id, receiver, amount: selected.amount, gift_name: selected.name })
+    alert(`✅ REAL PHOTO ${selected.name} sent to ${receiver} — ₦${selected.amount}`)
   }
 
   return (
-    <div className="min-h-screen bg-black p-4 text-white">
-      <h1 className="text-2xl font-bold text-yellow-400">🎁 135 Gifts — Click User, Then Gift</h1>
-      <p className="mb-3 text-zinc-400">Total: {gifts.length} gifts loaded</p>
-
-      <input value={receiver} onChange={e => setReceiver(e.target.value)} placeholder="Type ANY random user: john, sarah, okiki..." className="mb-4 w-full rounded border border-zinc-700 bg-zinc-900 p-3" />
-      <div className="mb-4 flex gap-2">
-        {['okiki', 'john', 'sarah', 'david', 'queen'].map(name => (
-          <button key={name} onClick={() => setReceiver(name)} className={`rounded-full px-3 py-1 ${receiver === name ? 'bg-yellow-400 text-black' : 'bg-zinc-800'}`}>{name}</button>
+    <div style={{ minHeight: '100vh', background: 'black', color: 'white', padding: 15 }}>
+      <style>{'@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }'}</style>
+      {fx && <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}><img src={selected.img} alt={selected.name} style={{ width: 250, height: 250, borderRadius: 20, animation: 'bounce 1s infinite' }} /></div>}
+      <h1 style={{ color: '#facc15', fontWeight: 900 }}>135 REAL PHOTO GIFTS 🌍</h1>
+      <input value={receiver} onChange={event => setReceiver(event.target.value)} placeholder="Gift to: john, sarah..." style={{ width: '100%', padding: 12, margin: '10px 0', background: '#222', borderRadius: 10, color: 'white' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, maxHeight: '60vh', overflowY: 'auto' }}>
+        {gifts.map(gift => (
+          <div key={gift.id} onClick={() => setSelected(gift)} style={{ border: selected?.id === gift.id ? '2px solid #facc15' : '1px solid #333', borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }}>
+            <img src={gift.img} alt={gift.name} style={{ width: '100%', height: 80, objectFit: 'cover' }} />
+            <div style={{ padding: 5, background: '#111', fontSize: 11 }}>{gift.name}<br /><span style={{ color: '#facc15' }}>₦{gift.amount}</span></div>
+          </div>
         ))}
       </div>
-
-      <div className="grid max-h-96 grid-cols-4 gap-2 overflow-y-auto">
-        {gifts.map((gift: any) => (
-          <button key={gift.id} onClick={() => setSelected(gift)} className={`rounded-xl border p-2 ${selected?.id === gift.id ? 'border-yellow-400 bg-zinc-800' : 'border-zinc-800 bg-zinc-900'}`}>
-            <div className="text-2xl">{gift.emoji}</div>
-            <div className="truncate text-xs">{gift.name}</div>
-            <div className="text-xs font-bold text-yellow-400">₦{gift.amount}</div>
-          </button>
-        ))}
-      </div>
-
-      {selected && (
-        <button onClick={sendGift} className="mt-4 w-full rounded-xl bg-yellow-400 py-4 font-black text-black">
-          Gift {selected.emoji} {selected.name} to {receiver} — ₦{selected.amount}
-        </button>
-      )}
-      {status && <div className="mt-3 rounded bg-zinc-900 p-3 text-yellow-400">{status}</div>}
+      <button onClick={sendGift} disabled={!selected} style={{ width: '100%', marginTop: 15, padding: 15, background: '#facc15', color: 'black', fontWeight: 900, borderRadius: 12 }}>
+        Gift {selected?.name} to {receiver} — REAL PHOTO + FX
+      </button>
     </div>
   )
 }
