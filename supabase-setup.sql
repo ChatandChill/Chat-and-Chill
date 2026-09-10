@@ -87,3 +87,49 @@ $$ language plpgsql security definer;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users for each row execute function handle_new_user();
+
+-- Atomic wallet deduction and transaction log
+create or replace function public.process_wallet_transaction(
+  p_user_id text,
+  p_amount numeric,
+  p_type text,
+  p_description text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_balance numeric;
+  new_balance numeric;
+begin
+  if p_amount is null or p_amount <= 0 then
+    return jsonb_build_object('success', false, 'error', 'Amount must be greater than zero');
+  end if;
+
+  select balance into current_balance
+  from wallets
+  where user_id = p_user_id
+  for update;
+
+  if current_balance is null then
+    return jsonb_build_object('success', false, 'error', 'Insufficient balance');
+  end if;
+
+  if current_balance < p_amount then
+    return jsonb_build_object('success', false, 'error', 'Insufficient balance');
+  end if;
+
+  new_balance := current_balance - p_amount;
+
+  update wallets
+  set balance = new_balance
+  where user_id = p_user_id;
+
+  insert into transactions (user_id, amount, type, description)
+  values (p_user_id, -p_amount, p_type, p_description);
+
+  return jsonb_build_object('success', true, 'new_balance', new_balance);
+end;
+$$;

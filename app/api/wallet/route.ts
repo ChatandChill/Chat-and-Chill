@@ -52,45 +52,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'user_id, amount, and type are required' }, { status: 400 })
     }
 
-    const { data: wallet, error: walletError } = await supabase
-      .from('wallets')
-      .select('balance')
-      .eq('user_id', user_id)
-      .maybeSingle()
-
-    if (walletError) {
-      console.error('wallet lookup error', walletError)
-      return NextResponse.json({ error: 'Unable to load wallet' }, { status: 500 })
-    }
-
-    if (!wallet || wallet.balance < numericAmount) {
-      return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 })
-    }
-
-    const newBalance = wallet.balance - numericAmount
-    const { error: updateError } = await supabase
-      .from('wallets')
-      .update({ balance: newBalance })
-      .eq('user_id', user_id)
-
-    if (updateError) {
-      console.error('wallet update error', updateError)
-      return NextResponse.json({ error: 'Unable to update wallet' }, { status: 500 })
-    }
-
-    const { error: transactionError } = await supabase.from('transactions').insert({
-      user_id,
-      amount: -numericAmount,
-      type,
-      description,
+    const { data, error } = await supabase.rpc('process_wallet_transaction', {
+      p_user_id: user_id,
+      p_amount: numericAmount,
+      p_type: type,
+      p_description: description ?? null,
     })
 
-    if (transactionError) {
-      console.error('transaction insert error', transactionError)
-      return NextResponse.json({ error: 'Unable to record transaction' }, { status: 500 })
+    if (error) {
+      console.error('wallet transaction rpc error', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, new_balance: newBalance })
+    if (!data?.success) {
+      return NextResponse.json({ error: data?.error ?? 'Wallet transaction failed' }, { status: 400 })
+    }
+
+    return NextResponse.json(data)
   } catch (e) {
     console.error('wallet api crash', e)
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
