@@ -1,33 +1,12 @@
-"use client";
-import { useState } from 'react';
-
 export default function LiveGiftSystemPro() {
-  const [sending, setSending] = useState(false);
-
-  async function sendGift() {
-    setSending(true);
-    try {
-      const res = await fetch('/api/gift', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderId: 'test_user', receiverId: 'creator_1', amount: 100 })
-      });
-      const data = await res.json();
-      alert(data.message || data.error);
-    } catch (e) {
-      alert('Error: ' + e.message);
-    }
-    setSending(false);
-  }
-
   return (
-    <div className="p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-      <h2 className="text-xl font-bold">🎁 Live Gift System Pro</h2>
-      <p className="text-sm opacity-70">Send Gifts • 70% Creator Share • Real-time</p>
-      <button onClick={sendGift} disabled={sending}
-        className="mt-3 w-full bg-yellow-500 text-black font-bold py-2 rounded-lg">
-        {sending ? 'Sending...' : 'Tap to Send ₦100 Gift'}
-      </button>
+    <div className="rounded-xl border border-pink-500/20 bg-gradient-to-br from-pink-500/10 to-purple-500/10 p-5 backdrop-blur-xl">
+      <h3 className="font-black text-pink-200">Live Gift System Pro</h3>
+      <div className="mt-3 space-y-1 text-xs text-white/60">
+        <p>Smallworld sent Rose</p>
+        <p>CEO sent Diamond x10</p>
+        <p className="animate-pulse">Gift rain active!</p>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import LaunchSplash from './components/LaunchSplash'
 
 export const metadata = {
-  title: 'Chat and Chill V5M.1 - 5M Hedge Ahead TikTok+IG DNA Not Bank',
-  description: 'Talk cool Chill out Have fun Friendship Love Benefits Diaspora More Convenient Benefit Accessible Guest FYP Like TikTok',
+  title: 'Chat & Chill | Guest entertainment & Diamond Wallet',
+  description: 'Chat & Chill app with guest entertainment, real-photo gifts, Diamond Wallet balance tracking, and an honest live-production rollout status.',
+  keywords: ['Chat & Chill', 'Diamond Wallet', 'guest entertainment', 'Nigerian social app'],
   manifest: '/manifest.json'
 }
 

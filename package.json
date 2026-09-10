@@ -1,38 +1,24 @@
 {
   "name": "chat-and-chill",
-  "version": "1000.0.0",
-  "private": true,
-  "description": "Chat-and-Chill 1000.0.0 Full Force - Live Gift + Voice Passport",
+  "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.116.0",
-    "axios": "^1.6.2",
-    "bcryptjs": "^2.4.3",
-    "cloudinary": "^1.41.0",
-    "form-data": "^4.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.0.3",
-    "next": "^16.3.4",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "sharp": "^0.32.6",
-    "socket.io-client": "^4.7.4",
-    "uuid": "^9.0.1",
-    "validator": "^13.11.0"
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@supabase/supabase-js": "2.45.4",
+    "@supabase/auth-helpers-nextjs": "0.10.0"
   },
   "devDependencies": {
-    "@types/node": "22.20.2",
-    "@types/react": "19.3.0",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.5",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.4.0",
-    "typescript": "7.0.2"
+    "@types/node": "20.11.0",
+    "@types/react": "18.3.0",
+    "typescript": "5.5.4",
+    "tailwindcss": "3.4.0",
+    "autoprefixer": "10.4.0",
+    "postcss": "8.4.0"
   }
 }

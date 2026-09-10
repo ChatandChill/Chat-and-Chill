@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
 
 const USERS = ['okiki', 'john', 'sarah', 'david', 'queen', 'amara', 'chidi', 'zainab']
 
@@ -9,21 +8,50 @@ export default function ChatPage() {
   const [selected, setSelected] = useState('okiki')
   const [message, setMessage] = useState('')
   const [chats, setChats] = useState<any[]>([])
-  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getUser().then(r => setUser(r.data.user))
+    const requestedUser = new URLSearchParams(window.location.search).get('user')
+    if (requestedUser) setSelected(requestedUser)
+
+    const roomId = `room_${requestedUser || selected}`
+
+    fetch(`/api/chat?room_id=${encodeURIComponent(roomId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const normalized = Array.isArray(data) ? data : []
+        setChats(normalized)
+      })
+      .catch(() => setChats([]))
+      .finally(() => setLoading(false))
   }, [])
 
   const send = async () => {
-    if (!message) return
-    const newMsg = { sender: user?.email || 'me', receiver: selected, text: message, time: new Date().toLocaleTimeString() }
-    setChats([...chats, newMsg])
+    if (!message.trim()) return
+
+    const nextMessage = {
+      id: `local-${Date.now()}`,
+      room_id: `room_${selected}`,
+      username: 'You',
+      text: message.trim(),
+      created_at: new Date().toISOString()
+    }
+
+    setChats((current) => [...current, nextMessage])
     setMessage('')
-    await supabase.from('messages').insert({ sender_id: user?.id, receiver: selected, content: message })
+
+    try {
+      await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ room_id: `room_${selected}`, username: 'You', text: message.trim() })
+      })
+    } catch (error) {
+      console.error('chat send fallback', error)
+    }
   }
 
-  const selectedChats = chats.filter(chat => chat.receiver === selected)
+  const selectedChats = chats.filter(chat => chat.room_id === `room_${selected}` || chat.receiver === selected || chat.username)
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'black', color: 'white' }}>
@@ -38,10 +66,14 @@ export default function ChatPage() {
       <div style={{ width: '65%', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: 15, borderBottom: '1px solid #333', fontWeight: 900 }}>Chatting with {selected} 🌍</div>
         <div style={{ flex: 1, padding: 15, overflowY: 'auto' }}>
+          {loading && <p style={{ color: '#666' }}>Loading chat…</p>}
           {selectedChats.map((chat, index) => (
-            <div key={index} style={{ marginBottom: 10, background: '#222', padding: 10, borderRadius: 10 }}>{chat.text}</div>
+            <div key={chat.id || index} style={{ marginBottom: 10, background: '#222', padding: 10, borderRadius: 10 }}>
+              <div style={{ fontSize: 11, color: '#facc15', marginBottom: 4 }}>{chat.username || 'Guest'}</div>
+              <div>{chat.text || chat.content}</div>
+            </div>
           ))}
-          {selectedChats.length === 0 && <p style={{ color: '#666' }}>No messages yet. Say hello to {selected}!</p>}
+          {!loading && selectedChats.length === 0 && <p style={{ color: '#666' }}>No messages yet. Say hello to {selected}!</p>}
         </div>
         <div style={{ display: 'flex', padding: 10, borderTop: '1px solid #333' }}>
           <input value={message} onChange={event => setMessage(event.target.value)} placeholder={`Message ${selected}...`} style={{ flex: 1, padding: 12, borderRadius: 10, background: '#222', color: 'white', border: '1px solid #333' }} />
