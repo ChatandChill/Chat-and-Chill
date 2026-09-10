@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
 const LIVE_IMAGES = [
@@ -25,6 +25,10 @@ export default function GreaterThanTikTok() {
   const [wallet, setWallet] = useState({ balance: 0 })
   const [hearts, setHearts] = useState([])
   const [giftPop, setGiftPop] = useState(null)
+  const [isCameraLive, setIsCameraLive] = useState(false)
+  const [cameraFacing, setCameraFacing] = useState('user')
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
   const [leaderboard] = useState([
     { name: 'LagosQueen', gifts: 1240 },
     { name: 'LondonKing', gifts: 980 },
@@ -50,7 +54,32 @@ export default function GreaterThanTikTok() {
     supabase.from('wallets').select('*').eq('user_email', user.email).maybeSingle().then(({ data }) => setWallet(data || { balance: 0 }))
   }, [user])
 
+  useEffect(() => () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop())
+  }, [])
+
   const openAuth = (nextMode = 'login') => { setMode(nextMode); setShowAuth(true) }
+  const startCamera = async (facing = cameraFacing) => {
+    if (!navigator.mediaDevices?.getUserMedia) { setNotice('Camera access is not available in this browser.'); return }
+    try {
+      streamRef.current?.getTracks().forEach((track) => track.stop())
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1080 }, height: { ideal: 1920 } }, audio: true })
+      streamRef.current = stream
+      if (videoRef.current) videoRef.current.srcObject = stream
+      setCameraFacing(facing)
+      setIsCameraLive(true)
+      setNotice('Camera preview is live on this device. Publish only after host consent.')
+    } catch (error) {
+      setNotice(`Camera permission needed: ${error?.message || 'access was denied'}`)
+    }
+  }
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop())
+    streamRef.current = null
+    if (videoRef.current) videoRef.current.srcObject = null
+    setIsCameraLive(false)
+  }
+  const switchCamera = () => startCamera(cameraFacing === 'user' ? 'environment' : 'user')
   const addHeart = () => {
     const id = Date.now()
     setHearts((current) => [...current, { id, x: Math.random() * 80 }])
@@ -90,7 +119,7 @@ export default function GreaterThanTikTok() {
 
       {tab === 'fyp' && <div className="scroll" style={{ height: '100vh', overflowY: 'scroll', scrollSnapType: 'y mandatory' }}><section style={{ height: '100vh', position: 'relative', scrollSnapAlign: 'start' }}><div style={{ position: 'absolute', inset: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 2, background: 'black' }}>{LIVE_IMAGES.map(([city, image]) => <div key={city} style={{ position: 'relative' }}><img src={image} alt={`${city} live`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /><span style={{ position: 'absolute', bottom: 4, left: 4, background: 'red', padding: '2px 4px', borderRadius: 6, fontSize: 8 }}> {city} ● LIVE</span></div>)}</div><div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent, rgba(0,0,0,.9))', pointerEvents: 'none' }} /><div style={{ position: 'absolute', top: 60, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', gap: 8 }}><span style={{ background: 'rgba(0,0,0,.65)', padding: '4px 8px', borderRadius: 12, fontSize: 11 }}>🌍 4 Countries · 1 LIVE</span><span style={{ background: '#facc15', color: 'black', padding: '4px 8px', borderRadius: 12, fontSize: 10, fontWeight: 900 }}>👁 45.2K watching</span></div><div style={{ position: 'absolute', bottom: 90, left: 12, right: 20 }}><strong style={{ fontSize: 14 }}>🔥 MULTI-LIVE — four hosts, one screen</strong><div style={{ fontSize: 11, marginTop: 4, color: '#facc15' }}>Lagos, London, Atlanta, and Jozi sharing one live room.</div><div style={{ display: 'inline-block', marginTop: 8, background: 'rgba(250,204,21,.2)', padding: '6px 10px', borderRadius: 12, fontSize: 11 }}>💬 Chinedu: Ẹ ku owuro! → Good morning!</div></div></section><section style={{ minHeight: '100vh', background: '#0a0a0a', padding: '70px 16px 100px' }}><h2 style={{ color: '#facc15', fontWeight: 900 }}>🏆 GLOBAL LEADERBOARD</h2><p style={{ fontSize: 12, color: '#888' }}>Creator rankings from recorded gift activity.</p>{leaderboard.map((person, index) => <div key={person.name} style={{ background: '#111', border: '1px solid #222', borderRadius: 12, padding: 12, display: 'flex', justifyContent: 'space-between', marginTop: 10 }}><span style={{ fontWeight: 900 }}>#{index + 1} {person.name} {index === 0 ? '👑' : ''}</span><span style={{ color: '#facc15', fontWeight: 900 }}>{person.gifts} gifts</span></div>)}<div style={{ marginTop: 20, background: '#facc15', color: 'black', padding: 16, borderRadius: 12, textAlign: 'center', fontWeight: 900 }}>💰 Creator split target: 70% after verified settlement</div></section></div>}
 
-      {tab === 'live' && <div style={{ paddingTop: 70, padding: 12, height: '100vh', overflowY: 'auto' }}><button onClick={startMultiLive} style={{ width: '100%', background: '#ff3040', color: 'white', border: 0, padding: 16, borderRadius: 12, fontWeight: 900 }}>🔴 START 4-WAY MULTI-LIVE</button><p style={{ color: '#888', fontSize: 12 }}>Invite three friends from different cities into one live room. {liveCount} live records connected.</p></div>}
+      {tab === 'live' && <div style={{ paddingTop: 70, padding: 12, height: '100vh', overflowY: 'auto' }}><button onClick={startMultiLive} style={{ width: '100%', background: '#ff3040', color: 'white', border: 0, padding: 16, borderRadius: 12, fontWeight: 900 }}>🔴 START 4-WAY MULTI-LIVE</button><p style={{ color: '#888', fontSize: 12 }}>Invite three friends from different cities into one live room. {liveCount} live records connected.</p><div style={{ marginTop: 16, borderRadius: 16, overflow: 'hidden', border: '1px solid #333', background: '#111' }}><div style={{ position: 'relative', aspectRatio: '16 / 10', background: '#050505' }}>{isCameraLive ? <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: cameraFacing === 'user' ? 'scaleX(-1)' : 'none' }} /> : <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#888', padding: 24, textAlign: 'center' }}>Camera preview is off.<br />Allow browser camera permission to preview your stream.</div>}{isCameraLive && <span style={{ position: 'absolute', top: 10, left: 10, background: '#ef233c', borderRadius: 16, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>● CAMERA LIVE</span>}</div><div style={{ display: 'flex', gap: 8, padding: 10 }}><button onClick={() => isCameraLive ? stopCamera() : startCamera()} style={{ flex: 1, padding: 10, border: 0, borderRadius: 10, background: isCameraLive ? '#333' : '#facc15', color: isCameraLive ? 'white' : 'black', fontWeight: 900 }}>{isCameraLive ? 'STOP CAMERA' : 'START CAMERA'}</button><button disabled={!isCameraLive} onClick={switchCamera} style={{ padding: '10px 14px', border: '1px solid #555', borderRadius: 10, background: '#222', color: 'white', fontWeight: 900 }}>↔ SWITCH</button></div></div></div>}
       {tab === 'market' && <div style={{ paddingTop: 70, padding: 12, height: '100vh' }}><h3 style={{ color: '#facc15' }}>🛍 MARKET + LIVE</h3><p style={{ color: '#888', fontSize: 12 }}>Browse African-made products while watching live rooms.</p></div>}
       {tab === 'wallet' && <div style={{ paddingTop: 80, padding: 16, height: '100vh', overflowY: 'auto' }}><div style={{ background: 'linear-gradient(135deg,#facc15,gold)', color: 'black', padding: 20, borderRadius: 20 }}><div style={{ fontSize: 12, fontWeight: 700 }}>WALLET BALANCE</div><div style={{ fontSize: 36, fontWeight: 900 }}>₦{Number(wallet.balance || 0).toLocaleString()}</div><div style={{ fontSize: 11 }}>Creator split target is subject to verified settlement.</div></div><p style={{ color: '#888', fontSize: 12, marginTop: 16 }}>Live Paystack funding is available only after a verified transaction configuration.</p></div>}
       {tab === 'profile' && <div style={{ paddingTop: 70, padding: 16, height: '100vh', background: '#0a0a0a' }}>{!user ? <div style={{ textAlign: 'center', marginTop: 40 }}><h2>PROFILE</h2><button onClick={() => openAuth()} style={{ background: '#facc15', border: 0, padding: 12, borderRadius: 20, fontWeight: 900 }}>LOGIN</button></div> : <div style={{ background: '#111', padding: 16, borderRadius: 16 }}><strong>{user.email}</strong><p style={{ color: '#facc15', fontSize: 12 }}>Creator earnings display requires verified transaction settlement.</p><button onClick={() => { supabase?.auth.signOut(); setUser(null); setTab('fyp') }} style={{ width: '100%', marginTop: 20, border: '1px solid #ff3040', background: 'transparent', color: '#ff3040', padding: 12, borderRadius: 12 }}>LOGOUT</button></div>}</div>}
