@@ -1,34 +1,13 @@
-'use client'
-
-import { useState } from 'react'
-
-export default function Page() {
-  const [status, setStatus] = useState('')
-
-  const send = async () => {
-    setStatus('Starting chat...')
-    const response = await fetch('/api/wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: 'smallworld',
-        amount: 100,
-        type: 'chat',
-        description: 'Chat session',
-      }),
-    })
-    const data = await response.json()
-    setStatus(data.success ? `Chat started! New: ₦${data.new_balance}` : `Error: ${data.error}`)
-  }
-
+export default function ChatPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Chat</h1>
-      <button onClick={send} className="mt-4 rounded-xl bg-black px-6 py-3 font-bold text-white">
-        Start Chat ₦100
-      </button>
-      <p className="mt-3">{status}</p>
-      <a href="/" className="mt-6 block text-blue-600">Back</a>
+    <div style={{background:'black', color:'white', minHeight:'100vh', padding:20}}>
+      <h1 style={{color:'#facc15', fontSize:30, fontWeight:900}}>📥 INBOX — CHAT IS WORKING!</h1>
+      <p>If you see this, /chat 404 is FIXED.</p>
+      <div style={{marginTop:20}}>
+        <div style={{padding:15, background:'#222', marginBottom:10, borderRadius:10}}>👤 okiki — Tap to chat</div>
+        <div style={{padding:15, background:'#222', marginBottom:10, borderRadius:10}}>👤 john — Tap to chat</div>
+        <div style={{padding:15, background:'#222', marginBottom:10, borderRadius:10}}>👤 sarah — Tap to chat</div>
+      </div>
     </div>
   )
 }
