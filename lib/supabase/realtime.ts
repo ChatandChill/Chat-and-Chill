@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { useEffect, useRef, useState } from 'react'
+import { createClient } from '@/src/lib/supabase/client'
 
 export type RealtimeMessage = {
   id: string
@@ -14,46 +14,58 @@ export type RealtimeMessage = {
 
 export function useRealtimeMessages(roomId: string) {
   const [messages, setMessages] = useState<RealtimeMessage[]>([])
-  const lastMessageTime = useRef<number | null>(null)
+  const [supabase] = useState(() => createClient())
+  const lastSendRef = useRef(0)
 
-  const loadMessages = useCallback(async () => {
-    if (!roomId) return
+  useEffect(() => {
+    if (!roomId) return undefined
 
-    const { data, error } = await supabase
+    let active = true
+    supabase
       .from('messages')
       .select('*')
       .eq('room_id', roomId)
       .order('created_at', { ascending: true })
-      .range(0, 49)
-
-    if (!error && data) setMessages(data)
-  }, [roomId])
-
-  useEffect(() => {
-    void loadMessages()
-    const interval = window.setInterval(() => void loadMessages(), 5000)
-    return () => window.clearInterval(interval)
-  }, [loadMessages])
-
-  const sendMessage = useCallback(async (text: string, imageUrl?: string) => {
-    if (lastMessageTime.current && Date.now() - lastMessageTime.current < 1000) return
-    lastMessageTime.current = Date.now()
-
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        room_id: roomId,
-        username: 'You',
-        text,
-        image_url: imageUrl
+      .range(0, 99)
+      .then(({ data }) => {
+        if (active && data) setMessages(data as RealtimeMessage[])
       })
+
+    const channel = supabase
+      .channel(`room:${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${roomId}` },
+        (payload) => setMessages((current) => [...current, payload.new as RealtimeMessage])
+      )
+      .subscribe()
+
+    return () => {
+      active = false
+      void supabase.removeChannel(channel)
+    }
+  }, [roomId, supabase])
+
+  const sendMessage = async (content: string, imageUrl?: string) => {
+    const now = Date.now()
+    if (now - lastSendRef.current < 1000) {
+      window.alert('Slow down - premium chill')
+      return
+    }
+    lastSendRef.current = now
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { error } = await supabase.from('messages').insert({
+      room_id: roomId,
+      user_id: user.id,
+      content,
+      image_url: imageUrl || null
     })
 
-    if (!response.ok) throw new Error('Unable to send message')
-    const message = await response.json()
-    setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, message])
-  }, [roomId])
+    if (error) throw error
+  }
 
   return { messages, sendMessage }
 }
