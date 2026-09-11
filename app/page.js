@@ -1,142 +1,159 @@
-"use client"
+'use client'
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
 
-import { useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+const SUPABASE_URL = 'https://kngpwddyquxrcfydlxkc.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuZ3B3ZGR5cXV4cmNmeWRseGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDMzNTU2Nn0.3_aLDmvrZSa6Y-TxZfXy577sCoUoCgSFk_67Z59J7AM'
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-const LIVE_IMAGES = [
-  ['Lagos', 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600'],
-  ['London', 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600'],
-  ['Atlanta', 'https://images.unsplash.com/photo-1516450360452-9312abbf6f7e?w=600'],
-  ['Jozi', 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600'],
+const GIFTS = [{id:'heart',icon:'💛'},{id:'rose',icon:'🌹'},{id:'crown',icon:'👑'},{id:'diamond',icon:'💎'},{id:'fire',icon:'🔥'},{id:'gift',icon:'🎁'}]
+
+const ROOMS = [
+  {id:'lagos-lounge', name:'Lagos Lounge', level:10, online:847, max:1000, topic:'Jollof Talk', icon:'🌍', premium:false},
+  {id:'london-linkup', name:'London Linkup', level:20, online:523, max:1000, topic:'UK Diaspora', icon:'🇬🇧', premium:true},
+  {id:'houston-hustle', name:'Houston Hustle', level:15, online:198, max:500, topic:'Business', icon:'🇺🇸', premium:false},
+  {id:'love-shawarma', name:'Love & Shawarma', level:12, online:412, max:1000, topic:'Dating • Love', icon:'🔥', premium:false},
+  {id:'yoruba-voice', name:'Yoruba → English REAL VOICE', level:18, online:234, max:500, topic:'Translator Room', icon:'🎙️', premium:false},
+  {id:'igbo-connect', name:'Igbo Connect', level:8, online:156, max:500, topic:'Igbo Diaspora', icon:'🦁', premium:false},
+  {id:'business-hub', name:'Diaspora Business Hub', level:25, online:312, max:1000, topic:'Deals • Shopify', icon:'💼', premium:true},
+  {id:'ghana-jollof', name:'Ghana Jollof Room', level:9, online:298, max:500, topic:'Jollof War', icon:'🇬🇭', premium:false},
+  {id:'nostalgia-2010', name:'2GO Nostalgia 2010', level:30, online:1203, max:2000, topic:'OG 2GO', icon:'📱', premium:false},
+  {id:'vip-luxury', name:'Premium VIP Lounge', level:30, online:89, max:100, topic:'VIP Only', icon:'👑', premium:true},
 ]
-const GIFTS = Array.from({ length: 135 }, (_, index) => ({ id: index + 1, name: `Gift ${index + 1}`, emoji: ['🌹', '🔥', '💛', '👑', '🚀', '💎', '🎉', '❤️', '🦁', '🌍'][index % 10] }))
 
-export default function GreaterThanTikTok() {
-  const router = useRouter()
-  const [tab, setTab] = useState('fyp')
-  const [showAuth, setShowAuth] = useState(false)
-  const [mode, setMode] = useState('login')
-  const [user, setUser] = useState(null)
+const MOCK_PROFILES:any = {
+  'Smallworld': {pic:'https://i.pravatar.cc/150?img=11', bio:'AYO Founder • Lagos • Building Diaspora Love', level:30, gifts:1240, followers:4200},
+  'Aisha': {pic:'https://i.pravatar.cc/150?img=5', bio:'Lagos • Jollof Queen • Level 22', level:22, gifts:890, followers:1200},
+  'Tunde UK': {pic:'https://i.pravatar.cc/150?img=8', bio:'London • Business • Diaspora Connect', level:18, gifts:450, followers:800},
+  'Chioma': {pic:'https://i.pravatar.cc/150?img=9', bio:'Houston • Igbo Babe • Love & Business', level:15, gifts:320, followers:650},
+  'Emeka': {pic:'https://i.pravatar.cc/150?img=15', bio:'2GO OG 2010 • Level 30', level:28, gifts:2100, followers:3200},
+}
+
+function getProfile(name:string){
+  return MOCK_PROFILES[name] || {pic:`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`, bio:`${name} • AYO Member • Level ${Math.floor(Math.random()*20+5)}`, level:Math.floor(Math.random()*20+5), gifts:Math.floor(Math.random()*500), followers:Math.floor(Math.random()*1000)}
+}
+
+export default function AYO() {
+  const [splash, setSplash] = useState(true)
+  const [room, setRoom] = useState(ROOMS[0])
+  const [messages, setMessages] = useState<any[]>([])
+  const [input, setInput] = useState('')
   const [email, setEmail] = useState('')
-  const [pass, setPass] = useState('')
-  const [liveCount, setLiveCount] = useState(0)
-  const [notice, setNotice] = useState('')
-  const [showGifts, setShowGifts] = useState(false)
-  const [selectedGift, setSelectedGift] = useState(null)
-  const [wallet, setWallet] = useState({ balance: 0 })
-  const [hearts, setHearts] = useState([])
-  const [giftPop, setGiftPop] = useState(null)
-  const [isCameraLive, setIsCameraLive] = useState(false)
-  const [cameraFacing, setCameraFacing] = useState('user')
-  const videoRef = useRef(null)
-  const streamRef = useRef(null)
-  const [leaderboard] = useState([
-    { name: 'LagosQueen', gifts: 1240 },
-    { name: 'LondonKing', gifts: 980 },
-    { name: 'AtlantaStar', gifts: 760 },
-  ])
+  const [dataSaver, setDataSaver] = useState(true)
+  const [translatorOn, setTranslatorOn] = useState(true)
+  const [tab, setTab] = useState<'rooms'|'reels'|'market'>('rooms')
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [myPic, setMyPic] = useState('https://i.pravatar.cc/150?img=11')
+  const userName = 'Smallworld'
+
+  useEffect(() => { const t = setTimeout(()=>setSplash(false), 2500); return ()=>clearTimeout(t) }, [])
 
   useEffect(() => {
-    if (!supabase) return undefined
-    let active = true
-    const loadLives = async () => {
-      const { data } = await supabase.from('live_streams').select('*')
-      if (active) setLiveCount(data?.length || 0)
-    }
-    supabase.auth.getUser().then(({ data }) => { if (active) setUser(data?.user || null) })
-    loadLives()
-    const auth = supabase.auth.onAuthStateChange((event, session) => setUser(session?.user || null))
-    const channel = supabase.channel('greater-live-count').on('postgres_changes', { event: '*', schema: 'public', table: 'live_streams' }, loadLives).subscribe()
-    return () => { active = false; auth.data.subscription.unsubscribe(); supabase.removeChannel(channel) }
-  }, [])
+    supabase.from('ayo_messages').select('*').eq('room', room.id).order('created_at',{ascending:true}).limit(dataSaver?20:50).then(({data})=>{if(data) setMessages(data)})
+    const interval = setInterval(async()=>{ const {data} = await supabase.from('ayo_messages').select('*').eq('room',room.id).order('created_at',{ascending:true}).limit(20); if(data) setMessages(data) }, 3000)
+    return ()=>clearInterval(interval)
+  }, [room.id, dataSaver])
 
-  useEffect(() => {
-    if (!supabase || !user) return
-    supabase.from('wallets').select('*').eq('user_email', user.email).maybeSingle().then(({ data }) => setWallet(data || { balance: 0 }))
-  }, [user])
+  const sendMessage = async () => { if(!input.trim()) return; await supabase.from('ayo_messages').insert({room:room.id, user_name:userName, content:input}); setInput('') }
+  const sendGift = async (id:string) => { await supabase.from('ayo_gifts').insert({from_user:userName,to_user:selectedUser?.name||'Aisha',gift_type:id,room:room.id}); alert('Gift '+id+' sent! 💛') }
+  const sendTip = async (a:number) => { await supabase.from('ayo_tips').insert({from_user:userName,to_user:selectedUser?.name||'Aisha',amount:a,room:room.id}); alert('Tipped $'+a) }
+  const sendHandshake = async (i:string) => { await supabase.from('ayo_handshakes').insert({from_user:userName,to_user:selectedUser?.name||'Aisha',intent:i,message:'Connect for '+i}); alert('Handshake '+i) }
+  const joinWaitlist = async () => { if(!email) return; const {error} = await supabase.from('waitlist').insert({email}); if(!error){ setEmail(''); alert('Welcome to AYO!') } else alert('Already joined') }
+  const handlePicChange = (e:any) => { const file = e.target.files?.[0]; if(file){ setMyPic(URL.createObjectURL(file)) } }
 
-  useEffect(() => () => {
-    streamRef.current?.getTracks().forEach((track) => track.stop())
-  }, [])
-
-  const openAuth = (nextMode = 'login') => { setMode(nextMode); setShowAuth(true) }
-  const startCamera = async (facing = cameraFacing) => {
-    if (!navigator.mediaDevices?.getUserMedia) { setNotice('Camera access is not available in this browser.'); return }
-    try {
-      streamRef.current?.getTracks().forEach((track) => track.stop())
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1080 }, height: { ideal: 1920 } }, audio: true })
-      streamRef.current = stream
-      if (videoRef.current) videoRef.current.srcObject = stream
-      setCameraFacing(facing)
-      setIsCameraLive(true)
-      setNotice('Camera preview is live on this device. Publish only after host consent.')
-    } catch (error) {
-      setNotice(`Camera permission needed: ${error?.message || 'access was denied'}`)
-    }
-  }
-  const stopCamera = () => {
-    streamRef.current?.getTracks().forEach((track) => track.stop())
-    streamRef.current = null
-    if (videoRef.current) videoRef.current.srcObject = null
-    setIsCameraLive(false)
-  }
-  const switchCamera = () => startCamera(cameraFacing === 'user' ? 'environment' : 'user')
-  const addHeart = () => {
-    const id = Date.now()
-    setHearts((current) => [...current, { id, x: Math.random() * 80 }])
-    window.setTimeout(() => setHearts((current) => current.filter((heart) => heart.id !== id)), 2000)
-  }
-  const sendGift = async () => {
-    if (!selectedGift) return
-    if (!user) { openAuth('signup'); return }
-    if (!supabase) { setNotice('Supabase gifts are not configured.'); return }
-    const { error } = await supabase.from('gift_sends').insert({ gift_id: selectedGift.id, gift_name: selectedGift.name, sender_email: user.email, receiver: '@afrobeats_live' })
-    if (error) setNotice(error.message)
-    else { setGiftPop(selectedGift); setShowGifts(false); setSelectedGift(null); window.setTimeout(() => setGiftPop(null), 3000) }
-  }
-  const startMultiLive = async () => {
-    if (!user) { openAuth('signup'); return }
-    if (!supabase) { setNotice('Supabase live services are not configured.'); return }
-    const { error } = await supabase.from('live_streams').insert({ user_email: user.email, title: 'Four-way African Pride Live 🌍', viewers: 0 })
-    setNotice(error ? error.message : 'Multi-live session created. Invite three hosts from the LIVE room.')
-    if (!error) setTab('live')
-  }
-  const handleAuth = async () => {
-    if (!supabase) { setNotice('Supabase authentication is not configured.'); return }
-    const result = mode === 'signup' ? await supabase.auth.signUp({ email, password: pass }) : await supabase.auth.signInWithPassword({ email, password: pass })
-    if (result.error) setNotice(result.error.message)
-    else { setShowAuth(false); setNotice(mode === 'signup' ? 'Account created. Check your email.' : 'Login successful.') }
-  }
-  const handleSignOut = async () => {
-    if (supabase) await supabase.auth.signOut()
-    setUser(null)
-    setTab('fyp')
-    router.push('/login')
+  if(splash){
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4 text-center relative overflow-hidden">
+        <div className="absolute w-96 h-96 bg-[#d4af37]/10 rounded-full blur-[80px] animate-pulse" />
+        <img src={myPic} className="w-20 h-20 rounded-full border-2 border-[#d4af37] mb-4 object-cover" />
+        <h1 className="text-8xl md:text-[10rem] font-serif font-black text-transparent bg-clip-text bg-gradient-to-r from-[#d4af37] via-white to-[#d4af37] animate-pulse">AYO</h1>
+        <p className="text-[#d4af37] tracking-[0.4em] text-xs mt-2">PROFILE PICS • 2GO ROOMS • REAL VOICE</p>
+        <div className="mt-6 flex -space-x-3"><img src="https://i.pravatar.cc/100?img=5" className="w-10 h-10 rounded-full border-2 border-black"/><img src="https://i.pravatar.cc/100?img=8" className="w-10 h-10 rounded-full border-2 border-black"/><img src="https://i.pravatar.cc/100?img=9" className="w-10 h-10 rounded-full border-2 border-black"/><div className="w-10 h-10 rounded-full bg-[#d4af37] border-2 border-black flex items-center justify-center text-black text-xs font-bold">+847</div></div>
+        <p className="text-white/60 text-sm mt-4 tracking-widest">Loading Diaspora...</p>
+        <button onClick={()=>setSplash(false)} className="mt-8 text-white/30 text-xs underline">Enter AYO →</button>
+      </div>
+    )
   }
 
   return (
-    <div style={{ height: '100vh', background: 'black', color: 'white', overflow: 'hidden', fontFamily: 'sans-serif' }}>
-      <style>{`.scroll::-webkit-scrollbar{display:none}button{font:inherit}@keyframes floatHeart{from{transform:translateY(0) scale(1);opacity:1}to{transform:translateY(-90vh) scale(1.8);opacity:0}}@keyframes giftPop{0%{transform:scale(.6)}50%{transform:scale(1.3)}100%{transform:scale(1)}}`}</style>
-      {hearts.map((heart) => <div key={heart.id} style={{ position: 'fixed', left: `${heart.x}%`, bottom: 80, zIndex: 500, pointerEvents: 'none', fontSize: 28, animation: 'floatHeart 2s ease-out forwards' }}>❤️</div>)}
-      {giftPop && <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'grid', placeItems: 'center', background: 'rgba(0,0,0,.88)' }}><div style={{ textAlign: 'center', animation: 'giftPop .6s infinite alternate' }}><div style={{ fontSize: 120 }}>{giftPop.emoji}</div><h1 style={{ color: '#facc15' }}>SENT GLOBALLY 🌍</h1><p>{giftPop.name} • Level Up!</p></div></div>}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 56, zIndex: 100, display: 'flex', justifyContent: 'space-between', padding: '0 12px', alignItems: 'center', background: 'black' }}>
-        <strong style={{ color: '#facc15', fontSize: 16 }}>CHAT & CHILL 🌍 <span style={{ fontSize: 10, background: '#facc15', color: 'black', padding: '2px 6px', borderRadius: 10, marginLeft: 6 }}>4-WAY MULTI-LIVE</span></strong>
-        {user ? <button onClick={() => setTab('profile')} style={{ background: '#facc15', color: 'black', border: 0, padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 900 }}>PROFILE</button> : <button onClick={() => openAuth()} style={{ background: '#facc15', border: 0, padding: '6px 14px', borderRadius: 20, fontWeight: 900, fontSize: 11 }}>LOGIN</button>}
-      </header>
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img src={myPic} className="w-8 h-8 rounded-full border border-[#d4af37] object-cover"/>
+          <h1 className="font-serif text-2xl font-black text-[#d4af37]">AYO</h1>
+          <button onClick={()=>setDataSaver(!dataSaver)} className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-bold ${dataSaver?'bg-green-500/10 border-green-500/20 text-green-300':'bg-white/10 border-white/10'}`}><div className={`w-2 h-2 rounded-full ${dataSaver?'bg-green-400 animate-pulse':'bg-white/50'}`} /> {dataSaver?'2G MODE':'4G'}</button>
+        </div>
+        <div className="flex items-center gap-2"><div className="bg-red-500/20 border border-red-500/30 px-3 py-1 rounded-full flex gap-2 items-center text-xs"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"/>LIVE 4.2K</div><div className="bg-[#d4af37]/20 px-3 py-1 rounded-full text-[#d4af37] text-xs font-bold">🪙 12.4K</div></div>
+      </div>
 
-      {tab === 'fyp' && <div className="scroll" style={{ height: '100vh', overflowY: 'scroll', scrollSnapType: 'y mandatory' }}><section style={{ height: '100vh', position: 'relative', scrollSnapAlign: 'start' }}><div style={{ position: 'absolute', inset: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 2, background: 'black' }}>{LIVE_IMAGES.map(([city, image]) => <div key={city} style={{ position: 'relative' }}><img src={image} alt={`${city} live`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /><span style={{ position: 'absolute', bottom: 4, left: 4, background: 'red', padding: '2px 4px', borderRadius: 6, fontSize: 8 }}> {city} ● LIVE</span></div>)}</div><div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent, rgba(0,0,0,.9))', pointerEvents: 'none' }} /><div style={{ position: 'absolute', top: 60, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', gap: 8 }}><span style={{ background: 'rgba(0,0,0,.65)', padding: '4px 8px', borderRadius: 12, fontSize: 11 }}>🌍 4 Countries · 1 LIVE</span><span style={{ background: '#facc15', color: 'black', padding: '4px 8px', borderRadius: 12, fontSize: 10, fontWeight: 900 }}>👁 45.2K watching</span></div><div style={{ position: 'absolute', bottom: 90, left: 12, right: 20 }}><strong style={{ fontSize: 14 }}>🔥 MULTI-LIVE — four hosts, one screen</strong><div style={{ fontSize: 11, marginTop: 4, color: '#facc15' }}>Lagos, London, Atlanta, and Jozi sharing one live room.</div><div style={{ display: 'inline-block', marginTop: 8, background: 'rgba(250,204,21,.2)', padding: '6px 10px', borderRadius: 12, fontSize: 11 }}>💬 Chinedu: Ẹ ku owuro! → Good morning!</div></div></section><section style={{ minHeight: '100vh', background: '#0a0a0a', padding: '70px 16px 100px' }}><h2 style={{ color: '#facc15', fontWeight: 900 }}>🏆 GLOBAL LEADERBOARD</h2><p style={{ fontSize: 12, color: '#888' }}>Creator rankings from recorded gift activity.</p>{leaderboard.map((person, index) => <div key={person.name} style={{ background: '#111', border: '1px solid #222', borderRadius: 12, padding: 12, display: 'flex', justifyContent: 'space-between', marginTop: 10 }}><span style={{ fontWeight: 900 }}>#{index + 1} {person.name} {index === 0 ? '👑' : ''}</span><span style={{ color: '#facc15', fontWeight: 900 }}>{person.gifts} gifts</span></div>)}<div style={{ marginTop: 20, background: '#facc15', color: 'black', padding: 16, borderRadius: 12, textAlign: 'center', fontWeight: 900 }}>💰 Creator split target: 70% after verified settlement</div></section></div>}
+      <div className="max-w-[1600px] mx-auto grid lg:grid-cols-[320px_1fr_340px] gap-4 p-4">
+        <div className="bg-white/[0.04] backdrop-blur-xl rounded-[24px] border border-white/10 p-4 h-fit">
+          <div className="flex justify-between items-center"><h3 className="font-black text-sm">🌍 ROOMS • Profile Pics Live</h3><span className="text-[#d4af37] text-xs">{room.online} online</span></div>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
+            {Object.keys(MOCK_PROFILES).slice(0,5).map(name=>(
+              <button key={name} onClick={()=>setSelectedUser({name,...getProfile(name)})} className="flex flex-col items-center min-w-[56px]"><img src={getProfile(name).pic} className="w-12 h-12 rounded-full border-2 border-[#d4af37]/30 object-cover"/><span className="text-[10px] mt-1 truncate w-14 text-center">{name}</span><span className="text-[9px] bg-green-500 w-2 h-2 rounded-full -mt-3 ml-8 border border-black"></span></button>
+            ))}
+          </div>
+          <input placeholder="Search rooms..." className="w-full mt-3 bg-black/40 rounded-full px-4 py-2 text-sm border border-white/10 outline-none" />
+          <div className="space-y-2 mt-4 max-h-[380px] overflow-y-auto pr-1">
+            {ROOMS.map(r=>(
+              <button key={r.id} onClick={()=>setRoom(r)} className={`w-full text-left rounded-2xl p-3 border transition flex justify-between items-center ${room.id===r.id?'bg-[#d4af37]/15 border-[#d4af37]/30':'bg-white/5 border-white/5 hover:bg-white/10'}`}>
+                <div className="flex gap-3 items-center"><div className="relative"><div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg">{r.icon}</div><div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-black border border-white/10 flex -space-x-1 overflow-hidden"><img src="https://i.pravatar.cc/100?img=5" className="w-5 h-5 rounded-full"/><img src="https://i.pravatar.cc/100?img=8" className="w-5 h-5 rounded-full"/></div></div><div><p className="font-bold text-sm flex gap-2">{r.name} {r.premium && <span className="text-[10px] bg-[#d4af37] text-black px-2 py-0.5 rounded-full">VIP</span>}</p><p className="text-white/40 text-xs">{r.online} • {r.topic} • Lv{r.level}</p></div></div><div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              </button>
+            ))}
+          </div>
+        </div>
 
-      {tab === 'live' && <div style={{ paddingTop: 70, padding: 12, height: '100vh', overflowY: 'auto' }}><button onClick={startMultiLive} style={{ width: '100%', background: '#ff3040', color: 'white', border: 0, padding: 16, borderRadius: 12, fontWeight: 900 }}>🔴 START 4-WAY MULTI-LIVE</button><p style={{ color: '#888', fontSize: 12 }}>Invite three friends from different cities into one live room. {liveCount} live records connected.</p><div style={{ marginTop: 16, borderRadius: 16, overflow: 'hidden', border: '1px solid #333', background: '#111' }}><div style={{ position: 'relative', aspectRatio: '16 / 10', background: '#050505' }}>{isCameraLive ? <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: cameraFacing === 'user' ? 'scaleX(-1)' : 'none' }} /> : <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#888', padding: 24, textAlign: 'center' }}>Camera preview is off.<br />Allow browser camera permission to preview your stream.</div>}{isCameraLive && <span style={{ position: 'absolute', top: 10, left: 10, background: '#ef233c', borderRadius: 16, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>● CAMERA LIVE</span>}</div><div style={{ display: 'flex', gap: 8, padding: 10 }}><button onClick={() => isCameraLive ? stopCamera() : startCamera()} style={{ flex: 1, padding: 10, border: 0, borderRadius: 10, background: isCameraLive ? '#333' : '#facc15', color: isCameraLive ? 'white' : 'black', fontWeight: 900 }}>{isCameraLive ? 'STOP CAMERA' : 'START CAMERA'}</button><button disabled={!isCameraLive} onClick={switchCamera} style={{ padding: '10px 14px', border: '1px solid #555', borderRadius: 10, background: '#222', color: 'white', fontWeight: 900 }}>↔ SWITCH</button></div></div></div>}
-      {tab === 'market' && <div style={{ paddingTop: 70, padding: 12, height: '100vh' }}><h3 style={{ color: '#facc15' }}>🛍 MARKET + LIVE</h3><p style={{ color: '#888', fontSize: 12 }}>Browse African-made products while watching live rooms.</p></div>}
-      {tab === 'wallet' && <div style={{ paddingTop: 80, padding: 16, height: '100vh', overflowY: 'auto' }}><div style={{ background: 'linear-gradient(135deg,#facc15,gold)', color: 'black', padding: 20, borderRadius: 20 }}><div style={{ fontSize: 12, fontWeight: 700 }}>WALLET BALANCE</div><div style={{ fontSize: 36, fontWeight: 900 }}>₦{Number(wallet.balance || 0).toLocaleString()}</div><div style={{ fontSize: 11 }}>Creator split target is subject to verified settlement.</div></div><p style={{ color: '#888', fontSize: 12, marginTop: 16 }}>Live Paystack funding is available only after a verified transaction configuration.</p></div>}
-      {tab === 'profile' && <div style={{ paddingTop: 70, padding: 16, height: '100vh', background: '#0a0a0a' }}>{!user ? <div style={{ textAlign: 'center', marginTop: 40 }}><h2>PROFILE</h2><button onClick={() => openAuth()} style={{ background: '#facc15', border: 0, padding: 12, borderRadius: 20, fontWeight: 900 }}>LOGIN</button></div> : <div style={{ background: '#111', padding: 16, borderRadius: 16 }}><strong>{user.email}</strong><p style={{ color: '#facc15', fontSize: 12 }}>Creator earnings display requires verified transaction settlement.</p><button onClick={handleSignOut} style={{ width: '100%', marginTop: 20, border: '1px solid #ff3040', background: 'transparent', color: '#ff3040', padding: 12, borderRadius: 12 }}>LOGOUT</button></div>}</div>}
+        <div className="flex flex-col h-[720px] bg-white/[0.04] backdrop-blur-xl rounded-[32px] border border-white/10 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex gap-3 items-center"><div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d4af37] to-[#8b6914] flex items-center justify-center text-xl">{room.icon}</div><div><h3 className="font-black flex gap-2 items-center">{room.name} • Lv{room.level} {room.premium && <span className="bg-[#d4af37] text-black text-[10px] px-2 py-0.5 rounded-full">VIP</span>}</h3><p className="text-white/40 text-xs">{room.online}/{room.max} online • {room.topic}</p><div className="flex -space-x-2 mt-1"><img src="https://i.pravatar.cc/100?img=5" className="w-6 h-6 rounded-full border border-black"/><img src="https://i.pravatar.cc/100?img=8" className="w-6 h-6 rounded-full border border-black"/><img src="https://i.pravatar.cc/100?img=9" className="w-6 h-6 rounded-full border border-black"/><div className="w-6 h-6 rounded-full bg-white/10 border border-black flex items-center justify-center text-[10px]">+{room.online}</div></div></div></div>
+            <span className="text-xs bg-[#d4af37]/20 text-[#d4af37] px-3 py-1 rounded-full animate-pulse">● Live</span>
+          </div>
 
-      {showGifts && <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, zIndex: 9998, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}><div onClick={() => setShowGifts(false)} style={{ flex: 1, background: 'rgba(0,0,0,.6)' }} /><div style={{ background: '#111', borderRadius: '20px 20px 0 0', maxHeight: '75vh', overflowY: 'auto', padding: 14 }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>🎁 135 Gifts</strong><button onClick={() => setShowGifts(false)} style={{ background: '#222', color: 'white', border: 0, padding: 8 }}>✕</button></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginTop: 12 }}>{GIFTS.map((gift) => <button key={gift.id} onClick={() => setSelectedGift(gift)} style={{ background: selectedGift?.id === gift.id ? '#facc15' : '#1a1a1a', color: selectedGift?.id === gift.id ? 'black' : 'white', border: 0, borderRadius: 10, padding: 8 }}><div style={{ fontSize: 24 }}>{gift.emoji}</div><small>{gift.name}</small></button>)}</div><button disabled={!selectedGift} onClick={sendGift} style={{ width: '100%', marginTop: 12, padding: 14, border: 0, borderRadius: 12, background: selectedGift ? '#facc15' : '#333', fontWeight: 900 }}>{selectedGift ? `SEND ${selectedGift.emoji} ${selectedGift.name}` : 'Pick a gift'}</button></div></div>}
+          <div className="bg-gradient-to-r from-red-500/10 to-purple-500/10 border border-red-500/20 rounded-2xl p-2 mb-3 flex items-center justify-between text-xs"><span className="flex items-center gap-2"><span className="bg-red-600 text-white px-2 py-0.5 rounded-full font-bold">LIVE</span> @Aisha • Jollof Battle • 4.2K viewers</span><span className="bg-black/40 px-2 py-0.5 rounded-full">🎁 Gift Battle: 234 vs 189</span></div>
 
-      {showAuth && <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.92)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}><div style={{ background: '#111', width: '100%', maxWidth: 360, borderRadius: 20, padding: 20 }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3>{mode === 'login' ? 'LOGIN' : 'SIGNUP'}</h3><button onClick={() => setShowAuth(false)} style={{ background: '#333', color: 'white', border: 0 }}>✕</button></div><input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" style={{ width: '100%', padding: 12, boxSizing: 'border-box', background: 'black', color: 'white', border: '1px solid #333', marginTop: 12 }} /><input value={pass} onChange={(event) => setPass(event.target.value)} type="password" placeholder="Password" style={{ width: '100%', padding: 12, boxSizing: 'border-box', background: 'black', color: 'white', border: '1px solid #333', marginTop: 10 }} /><button onClick={handleAuth} style={{ width: '100%', marginTop: 14, padding: 14, background: '#facc15', border: 0, fontWeight: 900 }}>GO</button><button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 0, color: '#facc15' }}>{mode === 'login' ? 'Need account? SIGNUP' : 'Have account? LOGIN'}</button></div></div>}
-      {notice && <div role="status" style={{ position: 'fixed', bottom: 70, left: 12, right: 12, zIndex: 11000, background: '#222', border: '1px solid #555', borderRadius: 10, padding: 12, textAlign: 'center' }}>{notice}<button onClick={() => setNotice('')} style={{ marginLeft: 10, background: 'none', border: 0, color: '#facc15' }}>✕</button></div>}
-      <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: 70, background: '#000', borderTop: '1px solid #222', display: 'flex', justifyContent: 'space-around', alignItems: 'center', zIndex: 9999999 }}><button onClick={() => setTab('fyp')} style={{ background: 'none', border: 0, color: tab === 'fyp' ? '#facc15' : '#666', padding: 12 }}>FYP</button><button onClick={() => setTab('live')} style={{ background: 'none', border: 0, color: tab === 'live' ? '#facc15' : '#666', padding: 12 }}>LIVE</button><button onClick={startMultiLive} style={{ background: '#facc15', border: 0, width: 48, height: 48, borderRadius: 24, fontWeight: 900 }}>+</button><button onClick={() => setTab('market')} style={{ background: 'none', border: 0, color: tab === 'market' ? '#facc15' : '#666', padding: 12 }}>MARKET</button><button onClick={() => setTab('wallet')} style={{ background: tab === 'wallet' ? '#facc15' : '#222', border: 0, color: tab === 'wallet' ? 'black' : 'white', padding: '10px 12px', borderRadius: 20, fontWeight: 900 }}>WALLET</button><button onClick={() => setTab('profile')} style={{ background: tab === 'profile' ? '#facc15' : '#222', border: 0, color: tab === 'profile' ? 'black' : 'white', padding: '10px 12px', borderRadius: 20, fontWeight: 900 }}>PROFILE</button></footer>
+          <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+            {messages.length===0 && <p className="text-white/30 text-center mt-20">No messages yet in {room.name}. Be first!</p>}
+            {messages.map((m:any)=>{
+              const prof = getProfile(m.user_name)
+              return (
+                <div key={m.id} className="flex gap-3 bg-white/5 rounded-2xl p-3 border border-white/5 hover:bg-white/10 transition">
+                  <button onClick={()=>setSelectedUser({name:m.user_name, ...prof})}><img src={m.user_name===userName?myPic:prof.pic} className="w-10 h-10 rounded-full object-cover border border-white/10 hover:border-[#d4af37] transition"/></button>
+                  <div className="flex-1"><div className="flex gap-2 items-center"><button onClick={()=>setSelectedUser({name:m.user_name, ...prof})} className="text-[#d4af37] text-xs font-black hover:underline">{m.user_name}</button><span className="text-white/20 text-[10px]">Lv{prof.level}</span><span className="text-white/30 text-[10px]">{new Date(m.created_at).toLocaleTimeString()}</span>{translatorOn && <span className="text-[9px] bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">Real Voice ✓</span>}</div><p className="text-white/90 text-sm mt-1">{m.content}</p></div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="flex gap-2 mt-3"><img src={myPic} className="w-10 h-10 rounded-full border border-[#d4af37]/50"/><input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter' && sendMessage()} placeholder="Share joy..." className="flex-1 bg-black/40 rounded-full px-5 py-3 text-white outline-none border border-white/10 text-sm" /><button onClick={sendMessage} className="bg-[#d4af37] text-black rounded-full px-6 py-3 font-black hover:scale-105 transition text-sm">Send</button></div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="bg-white/[0.04] rounded-[24px] p-4 border border-[#d4af37]/20">
+            <h4 className="font-black text-sm flex items-center gap-2"><img src={myPic} className="w-8 h-8 rounded-full border border-[#d4af37]"/>My Profile</h4>
+            <p className="text-white/50 text-xs mt-1">Click to change pic</p>
+            <label className="mt-3 block bg-black/40 rounded-2xl p-3 border border-dashed border-white/20 text-center cursor-pointer hover:bg-white/5"><input type="file" accept="image/*" onChange={handlePicChange} className="hidden"/><p className="text-xs">📸 Change Profile Pic</p><p className="text-[10px] text-white/40 mt-1">Upload or tap — works on 2G</p></label>
+            <div className="mt-3 flex gap-2 text-xs"><span className="bg-[#d4af37]/20 text-[#d4af37] px-3 py-1 rounded-full">Lv30</span><span className="bg-white/10 px-3 py-1 rounded-full">1.2k Gifts</span><span className="bg-white/10 px-3 py-1 rounded-full">4.2k Followers</span></div>
+          </div>
+
+          <div className="bg-white/[0.04] rounded-[24px] p-4 border border-[#d4af37]/20"><h4 className="text-[#d4af37] font-black text-xs mb-2">🎙️ REAL VOICE TRANSLATOR</h4><div className="bg-black/60 rounded-2xl p-3"><div className="flex justify-between text-[11px]"><span className="text-white/60">Your voice</span><span className="text-[#d4af37] font-bold">→ English (same voice)</span></div><button className="w-full mt-3 bg-[#d4af37] text-black rounded-full py-2.5 font-black text-xs">🎤 Hold to Speak • Real Voice</button></div></div>
+          <div className="bg-white/[0.04] rounded-[24px] p-4 border border-[#d4af37]/20"><h4 className="text-[#d4af37] font-black text-xs mb-2">GIFT • Show Love</h4><div className="grid grid-cols-3 gap-2">{GIFTS.map(g=><button key={g.id} onClick={()=>sendGift(g.id)} className="bg-black/40 hover:bg-[#d4af37]/20 rounded-2xl p-3 text-xl transition">{g.icon}</button>)}</div></div>
+          <div className="bg-white/[0.04] rounded-[24px] p-4 border border-[#d4af37]/20"><h4 className="text-[#d4af37] font-black text-xs mb-2">$$ • Send Benefits</h4><div className="grid grid-cols-4 gap-2">{[5,10,25,50].map(a=><button key={a} onClick={()=>sendTip(a)} className="bg-[#d4af37] text-black rounded-full py-2 font-black text-sm">${a}</button>)}</div></div>
+        </div>
+      </div>
+
+      {selectedUser && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4" onClick={()=>setSelectedUser(null)}>
+          <div className="bg-[#1a1a1a] rounded-[32px] border border-[#d4af37]/30 p-6 max-w-sm w-full" onClick={e=>e.stopPropagation()}>
+            <div className="flex justify-between"><p className="font-black text-sm">Profile View</p><button onClick={()=>setSelectedUser(null)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">✕</button></div>
+            <div className="flex flex-col items-center mt-4"><img src={selectedUser.pic} className="w-24 h-24 rounded-full border-2 border-[#d4af37] object-cover"/><h3 className="font-black text-xl mt-3">{selectedUser.name}</h3><p className="text-[#d4af37] text-xs mt-1">Level {selectedUser.level} • {selectedUser.followers} followers</p><p className="text-white/60 text-sm mt-2 text-center">{selectedUser.bio}</p></div>
+            <div className="grid grid-cols-3 gap-2 mt-6 text-center"><div className="bg-white/5 rounded-2xl p-3"><p className="font-black text-[#d4af37]">{selectedUser.gifts}</p><p className="text-[10px] text-white/40">Gifts</p></div><div className="bg-white/5 rounded-2xl p-3"><p className="font-black">{selectedUser.level}</p><p className="text-[10px] text-white/40">Level</p></div><div className="bg-white/5 rounded-2xl p-3"><p className="font-black">{selectedUser.followers}</p><p className="text-[10px] text-white/40">Fans</p></div></div>
+            <div className="grid grid-cols-2 gap-2 mt-4"><button onClick={()=>{sendGift('heart'); setSelectedUser(null)}} className="bg-[#d4af37] text-black rounded-full py-3 font-black text-sm">💛 Gift</button><button onClick={()=>{sendTip(10); setSelectedUser(null)}} className="bg-white/10 rounded-full py-3 font-black text-sm">$$ Tip $10</button></div>
+            <button onClick={()=>{sendHandshake('Friendship'); setSelectedUser(null)}} className="w-full mt-2 bg-white/5 rounded-full py-3 font-bold text-sm border border-white/10">🤝 Handshake</button>
+            <p className="text-center text-[10px] text-white/30 mt-4">Tap pic to view full • 2GO Style Profile</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
