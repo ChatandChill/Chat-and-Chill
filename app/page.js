@@ -21,7 +21,7 @@ const ROOMS = [
   {id:'vip-luxury', name:'Premium VIP Lounge', level:30, online:89, max:100, topic:'VIP Only', icon:'👑', premium:true},
 ]
 
-const MOCK_PROFILES:any = {
+const MOCK_PROFILES = {
   'Smallworld': {pic:'https://i.pravatar.cc/150?img=11', bio:'AYO Founder • Lagos • Building Diaspora Love', level:30, gifts:1240, followers:4200},
   'Aisha': {pic:'https://i.pravatar.cc/150?img=5', bio:'Lagos • Jollof Queen • Level 22', level:22, gifts:890, followers:1200},
   'Tunde UK': {pic:'https://i.pravatar.cc/150?img=8', bio:'London • Business • Diaspora Connect', level:18, gifts:450, followers:800},
@@ -29,20 +29,20 @@ const MOCK_PROFILES:any = {
   'Emeka': {pic:'https://i.pravatar.cc/150?img=15', bio:'2GO OG 2010 • Level 30', level:28, gifts:2100, followers:3200},
 }
 
-function getProfile(name:string){
+function getProfile(name){
   return MOCK_PROFILES[name] || {pic:`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`, bio:`${name} • AYO Member • Level ${Math.floor(Math.random()*20+5)}`, level:Math.floor(Math.random()*20+5), gifts:Math.floor(Math.random()*500), followers:Math.floor(Math.random()*1000)}
 }
 
 export default function AYO() {
   const [splash, setSplash] = useState(true)
   const [room, setRoom] = useState(ROOMS[0])
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [email, setEmail] = useState('')
   const [dataSaver, setDataSaver] = useState(true)
   const [translatorOn, setTranslatorOn] = useState(true)
   const [tab, setTab] = useState<'rooms'|'reels'|'market'>('rooms')
-  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [selectedUser, setSelectedUser] = useState(null)
   const [myPic, setMyPic] = useState('https://i.pravatar.cc/150?img=11')
   const userName = 'Smallworld'
 
@@ -59,7 +59,7 @@ export default function AYO() {
   const sendTip = async (a:number) => { await supabase.from('ayo_tips').insert({from_user:userName,to_user:selectedUser?.name||'Aisha',amount:a,room:room.id}); alert('Tipped $'+a) }
   const sendHandshake = async (i:string) => { await supabase.from('ayo_handshakes').insert({from_user:userName,to_user:selectedUser?.name||'Aisha',intent:i,message:'Connect for '+i}); alert('Handshake '+i) }
   const joinWaitlist = async () => { if(!email) return; const {error} = await supabase.from('waitlist').insert({email}); if(!error){ setEmail(''); alert('Welcome to AYO!') } else alert('Already joined') }
-  const handlePicChange = (e:any) => { const file = e.target.files?.[0]; if(file){ setMyPic(URL.createObjectURL(file)) } }
+  const handlePicChange = (e) => { const file = e.target.files?.[0]; if(file){ setMyPic(URL.createObjectURL(file)) } }
 
   if(splash){
     return (
@@ -114,7 +114,7 @@ export default function AYO() {
 
           <div className="flex-1 overflow-y-auto space-y-3 pr-1">
             {messages.length===0 && <p className="text-white/30 text-center mt-20">No messages yet in {room.name}. Be first!</p>}
-            {messages.map((m:any)=>{
+            {messages.map((m)=>{
               const prof = getProfile(m.user_name)
               return (
                 <div key={m.id} className="flex gap-3 bg-white/5 rounded-2xl p-3 border border-white/5 hover:bg-white/10 transition">
