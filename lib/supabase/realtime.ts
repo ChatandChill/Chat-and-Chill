@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 
 export type RealtimeMessage = {
   id: string
@@ -13,17 +14,19 @@ export type RealtimeMessage = {
 
 export function useRealtimeMessages(roomId: string) {
   const [messages, setMessages] = useState<RealtimeMessage[]>([])
+  const lastMessageTime = useRef<number | null>(null)
 
   const loadMessages = useCallback(async () => {
     if (!roomId) return
 
-    const response = await fetch(`/api/chat?room_id=${encodeURIComponent(roomId)}`, {
-      cache: 'no-store'
-    })
-    if (!response.ok) return
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('room_id', roomId)
+      .order('created_at', { ascending: true })
+      .range(0, 49)
 
-    const data = await response.json()
-    if (Array.isArray(data)) setMessages(data)
+    if (!error && data) setMessages(data)
   }, [roomId])
 
   useEffect(() => {
@@ -33,6 +36,9 @@ export function useRealtimeMessages(roomId: string) {
   }, [loadMessages])
 
   const sendMessage = useCallback(async (text: string, imageUrl?: string) => {
+    if (lastMessageTime.current && Date.now() - lastMessageTime.current < 1000) return
+    lastMessageTime.current = Date.now()
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

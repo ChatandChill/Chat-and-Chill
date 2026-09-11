@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 
 const LIVE_IMAGES = [
@@ -12,6 +13,7 @@ const LIVE_IMAGES = [
 const GIFTS = Array.from({ length: 135 }, (_, index) => ({ id: index + 1, name: `Gift ${index + 1}`, emoji: ['🌹', '🔥', '💛', '👑', '🚀', '💎', '🎉', '❤️', '🦁', '🌍'][index % 10] }))
 
 export default function GreaterThanTikTok() {
+  const router = useRouter()
   const [tab, setTab] = useState('fyp')
   const [showAuth, setShowAuth] = useState(false)
   const [mode, setMode] = useState('login')
@@ -106,6 +108,12 @@ export default function GreaterThanTikTok() {
     if (result.error) setNotice(result.error.message)
     else { setShowAuth(false); setNotice(mode === 'signup' ? 'Account created. Check your email.' : 'Login successful.') }
   }
+  const handleSignOut = async () => {
+    if (supabase) await supabase.auth.signOut()
+    setUser(null)
+    setTab('fyp')
+    router.push('/login')
+  }
 
   return (
     <div style={{ height: '100vh', background: 'black', color: 'white', overflow: 'hidden', fontFamily: 'sans-serif' }}>
@@ -122,7 +130,7 @@ export default function GreaterThanTikTok() {
       {tab === 'live' && <div style={{ paddingTop: 70, padding: 12, height: '100vh', overflowY: 'auto' }}><button onClick={startMultiLive} style={{ width: '100%', background: '#ff3040', color: 'white', border: 0, padding: 16, borderRadius: 12, fontWeight: 900 }}>🔴 START 4-WAY MULTI-LIVE</button><p style={{ color: '#888', fontSize: 12 }}>Invite three friends from different cities into one live room. {liveCount} live records connected.</p><div style={{ marginTop: 16, borderRadius: 16, overflow: 'hidden', border: '1px solid #333', background: '#111' }}><div style={{ position: 'relative', aspectRatio: '16 / 10', background: '#050505' }}>{isCameraLive ? <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: cameraFacing === 'user' ? 'scaleX(-1)' : 'none' }} /> : <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#888', padding: 24, textAlign: 'center' }}>Camera preview is off.<br />Allow browser camera permission to preview your stream.</div>}{isCameraLive && <span style={{ position: 'absolute', top: 10, left: 10, background: '#ef233c', borderRadius: 16, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>● CAMERA LIVE</span>}</div><div style={{ display: 'flex', gap: 8, padding: 10 }}><button onClick={() => isCameraLive ? stopCamera() : startCamera()} style={{ flex: 1, padding: 10, border: 0, borderRadius: 10, background: isCameraLive ? '#333' : '#facc15', color: isCameraLive ? 'white' : 'black', fontWeight: 900 }}>{isCameraLive ? 'STOP CAMERA' : 'START CAMERA'}</button><button disabled={!isCameraLive} onClick={switchCamera} style={{ padding: '10px 14px', border: '1px solid #555', borderRadius: 10, background: '#222', color: 'white', fontWeight: 900 }}>↔ SWITCH</button></div></div></div>}
       {tab === 'market' && <div style={{ paddingTop: 70, padding: 12, height: '100vh' }}><h3 style={{ color: '#facc15' }}>🛍 MARKET + LIVE</h3><p style={{ color: '#888', fontSize: 12 }}>Browse African-made products while watching live rooms.</p></div>}
       {tab === 'wallet' && <div style={{ paddingTop: 80, padding: 16, height: '100vh', overflowY: 'auto' }}><div style={{ background: 'linear-gradient(135deg,#facc15,gold)', color: 'black', padding: 20, borderRadius: 20 }}><div style={{ fontSize: 12, fontWeight: 700 }}>WALLET BALANCE</div><div style={{ fontSize: 36, fontWeight: 900 }}>₦{Number(wallet.balance || 0).toLocaleString()}</div><div style={{ fontSize: 11 }}>Creator split target is subject to verified settlement.</div></div><p style={{ color: '#888', fontSize: 12, marginTop: 16 }}>Live Paystack funding is available only after a verified transaction configuration.</p></div>}
-      {tab === 'profile' && <div style={{ paddingTop: 70, padding: 16, height: '100vh', background: '#0a0a0a' }}>{!user ? <div style={{ textAlign: 'center', marginTop: 40 }}><h2>PROFILE</h2><button onClick={() => openAuth()} style={{ background: '#facc15', border: 0, padding: 12, borderRadius: 20, fontWeight: 900 }}>LOGIN</button></div> : <div style={{ background: '#111', padding: 16, borderRadius: 16 }}><strong>{user.email}</strong><p style={{ color: '#facc15', fontSize: 12 }}>Creator earnings display requires verified transaction settlement.</p><button onClick={() => { supabase?.auth.signOut(); setUser(null); setTab('fyp') }} style={{ width: '100%', marginTop: 20, border: '1px solid #ff3040', background: 'transparent', color: '#ff3040', padding: 12, borderRadius: 12 }}>LOGOUT</button></div>}</div>}
+      {tab === 'profile' && <div style={{ paddingTop: 70, padding: 16, height: '100vh', background: '#0a0a0a' }}>{!user ? <div style={{ textAlign: 'center', marginTop: 40 }}><h2>PROFILE</h2><button onClick={() => openAuth()} style={{ background: '#facc15', border: 0, padding: 12, borderRadius: 20, fontWeight: 900 }}>LOGIN</button></div> : <div style={{ background: '#111', padding: 16, borderRadius: 16 }}><strong>{user.email}</strong><p style={{ color: '#facc15', fontSize: 12 }}>Creator earnings display requires verified transaction settlement.</p><button onClick={handleSignOut} style={{ width: '100%', marginTop: 20, border: '1px solid #ff3040', background: 'transparent', color: '#ff3040', padding: 12, borderRadius: 12 }}>LOGOUT</button></div>}</div>}
 
       {showGifts && <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, zIndex: 9998, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}><div onClick={() => setShowGifts(false)} style={{ flex: 1, background: 'rgba(0,0,0,.6)' }} /><div style={{ background: '#111', borderRadius: '20px 20px 0 0', maxHeight: '75vh', overflowY: 'auto', padding: 14 }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>🎁 135 Gifts</strong><button onClick={() => setShowGifts(false)} style={{ background: '#222', color: 'white', border: 0, padding: 8 }}>✕</button></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginTop: 12 }}>{GIFTS.map((gift) => <button key={gift.id} onClick={() => setSelectedGift(gift)} style={{ background: selectedGift?.id === gift.id ? '#facc15' : '#1a1a1a', color: selectedGift?.id === gift.id ? 'black' : 'white', border: 0, borderRadius: 10, padding: 8 }}><div style={{ fontSize: 24 }}>{gift.emoji}</div><small>{gift.name}</small></button>)}</div><button disabled={!selectedGift} onClick={sendGift} style={{ width: '100%', marginTop: 12, padding: 14, border: 0, borderRadius: 12, background: selectedGift ? '#facc15' : '#333', fontWeight: 900 }}>{selectedGift ? `SEND ${selectedGift.emoji} ${selectedGift.name}` : 'Pick a gift'}</button></div></div>}
 
