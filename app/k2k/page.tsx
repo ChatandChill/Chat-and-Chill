@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 
 export default function Page() {
@@ -28,7 +29,7 @@ export default function Page() {
         Send K2K ₦2,000
       </button>
       <p className="mt-3">{status}</p>
-      <a href="/" className="mt-6 block text-blue-600">Back</a>
+      <Link href="/" className="mt-6 block text-blue-600">Back</Link>
     </div>
   )
 }

@@ -53,8 +53,9 @@ export async function POST(req) {
   const room_id = body.room_id || 'demo-room'
   const username = body.username || 'User'
   const text = body.text || body.message || body.content || ''
+  const image_url = body.image_url || null
 
-  if (!text.trim()) {
+  if (!text.trim() && !image_url) {
     return NextResponse.json({ error: 'text missing' }, { status: 400 })
   }
 
@@ -67,6 +68,7 @@ export async function POST(req) {
       room_id,
       username,
       text,
+      image_url,
       created_at: new Date().toISOString()
     }
     demoStore.set(room_id, [...current, entry])
@@ -74,7 +76,7 @@ export async function POST(req) {
   }
 
   try {
-    const { data, error } = await supabase.from('messages').insert([{ room_id, text, username }]).select().single()
+    const { data, error } = await supabase.from('messages').insert([{ room_id, text, username, image_url }]).select().single()
     if (error) throw error
     return NextResponse.json(data, { status: 200 })
   } catch (error) {

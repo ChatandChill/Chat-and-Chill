@@ -1,3 +1,7 @@
+import { Inter } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin'], display: 'swap' })
+
 export const metadata = {
   title: 'Chat & Chill - African Pride',
   description: 'Chat & Chill social entertainment, gifts, and conversations.',
@@ -6,8 +10,8 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body style={{ background: 'black', margin: 0, color: 'white' }}>{children}</body>
+    <html lang="en" className={inter.className}>
+      <body className="bg-black antialiased">{children}</body>
     </html>
   )
 }
