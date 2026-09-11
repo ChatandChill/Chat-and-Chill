@@ -1,17 +1,4 @@
-import { Inter } from 'next/font/google'
-
-const inter = Inter({ subsets: ['latin'], display: 'swap' })
-
-export const metadata = {
-  title: 'Chat & Chill - African Pride',
-  description: 'Chat & Chill social entertainment, gifts, and conversations.',
-  manifest: '/manifest.json'
-}
-
+export const metadata = { title: "Chat & Chill LEVEL 10000 - One Heart. One Africa. One Love.", description: "Modern chat app with Supabase and Next.js - LEVEL 10000 thin elegant perfect fit" };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" className={inter.className}>
-      <body className="bg-black antialiased">{children}</body>
-    </html>
-  )
+  return (<html lang="en"><body style={{ margin: 0, background: "#000" }}>{children}</body></html>);
 }
